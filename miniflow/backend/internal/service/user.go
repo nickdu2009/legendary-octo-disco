@@ -47,7 +47,7 @@ type LoginRequest struct {
 // UpdateProfileRequest represents user profile update request
 type UpdateProfileRequest struct {
 	DisplayName string `json:"display_name"`
-	Email       string `json:"email" validate:"email"`
+	Email       string `json:"email" validate:"omitempty,email"`
 	Phone       string `json:"phone"`
 	Avatar      string `json:"avatar"`
 }

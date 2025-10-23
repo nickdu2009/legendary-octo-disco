@@ -15,15 +15,17 @@ import (
 
 // UserService handles user business logic
 type UserService struct {
-	userRepo *repository.UserRepository
-	logger   *logger.Logger
+	userRepo   *repository.UserRepository
+	jwtManager *utils.JWTManager
+	logger     *logger.Logger
 }
 
 // NewUserService creates a new user service
-func NewUserService(userRepo *repository.UserRepository, logger *logger.Logger) *UserService {
+func NewUserService(userRepo *repository.UserRepository, jwtManager *utils.JWTManager, logger *logger.Logger) *UserService {
 	return &UserService{
-		userRepo: userRepo,
-		logger:   logger,
+		userRepo:   userRepo,
+		jwtManager: jwtManager,
+		logger:     logger,
 	}
 }
 
@@ -148,7 +150,7 @@ func (s *UserService) Login(req *LoginRequest) (*LoginResponse, error) {
 	}
 
 	// Generate JWT token
-	token, err := utils.GenerateJWT(user.ID, user.Username)
+	token, err := s.jwtManager.GenerateToken(user.ID, user.Username)
 	if err != nil {
 		s.logger.Error("Failed to generate JWT token", zap.Error(err))
 		return nil, errors.New("生成登录凭证失败")

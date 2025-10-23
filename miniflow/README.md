@@ -120,6 +120,31 @@ miniflow/
 
 API 文档将在后续版本中提供 Swagger/OpenAPI 支持。
 
+### API 测试
+
+项目提供了完整的Python API测试工具：
+
+```bash
+# 1. 安装Python依赖
+pip3 install requests
+
+# 2. 启动数据库服务
+docker-compose up -d mysql redis
+
+# 3. 启动MiniFlow服务器
+cd backend && ./miniflow -config ./config
+
+# 4. 运行API测试（新终端）
+python3 scripts/test_api.py
+```
+
+**测试覆盖：**
+- 用户注册/登录API
+- JWT认证和中间件
+- 用户资料管理API
+- 管理员用户管理API
+- 认证保护机制验证
+
 ## 配置说明
 
 主要配置文件位于 `backend/config/config.yaml`，包含以下配置项：

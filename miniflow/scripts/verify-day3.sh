@@ -144,7 +144,8 @@ echo "  GET  /api/v1/admin/stats/users - 获取用户统计"
 
 echo ""
 echo "🧪 测试说明:"
-echo "- 运行 './scripts/test-api.sh' 可测试所有API接口"
+echo "- 运行 'python3 ./scripts/test_api.py' 可测试所有API接口"
+echo "- 需要先安装Python依赖: 'pip3 install requests'"
 echo "- 需要先启动数据库: 'docker-compose up -d mysql redis'"
 echo "- 然后启动服务器: 'cd backend && ./miniflow'"
 

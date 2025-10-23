@@ -4,6 +4,8 @@
 package wire
 
 import (
+	"miniflow/internal/handler"
+	"miniflow/internal/middleware"
 	"miniflow/internal/repository"
 	"miniflow/internal/server"
 	"miniflow/internal/service"
@@ -39,6 +41,10 @@ var ProviderSet = wire.NewSet(
 
 	// Service providers
 	service.NewUserService,
+
+	// Handler and Middleware providers
+	handler.NewRouter,
+	middleware.NewAuthMiddleware,
 
 	// Server provider
 	server.NewServer,

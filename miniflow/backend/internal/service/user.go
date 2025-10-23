@@ -52,16 +52,16 @@ type UpdateProfileRequest struct {
 
 // UserResponse represents user response data
 type UserResponse struct {
-	ID          uint      `json:"id"`
-	Username    string    `json:"username"`
-	DisplayName string    `json:"display_name"`
-	Email       string    `json:"email"`
-	Phone       string    `json:"phone"`
-	Role        string    `json:"role"`
-	Status      string    `json:"status"`
-	Avatar      string    `json:"avatar"`
+	ID          uint       `json:"id"`
+	Username    string     `json:"username"`
+	DisplayName string     `json:"display_name"`
+	Email       string     `json:"email"`
+	Phone       string     `json:"phone"`
+	Role        string     `json:"role"`
+	Status      string     `json:"status"`
+	Avatar      string     `json:"avatar"`
 	LastLoginAt *time.Time `json:"last_login_at"`
-	CreatedAt   time.Time `json:"created_at"`
+	CreatedAt   time.Time  `json:"created_at"`
 }
 
 // LoginResponse represents login response data
@@ -121,7 +121,7 @@ func (s *UserService) Register(req *RegisterRequest) (*UserResponse, error) {
 		return nil, errors.New("创建用户失败")
 	}
 
-	s.logger.Info("User registered successfully", 
+	s.logger.Info("User registered successfully",
 		zap.Uint("user_id", user.ID),
 		zap.String("username", user.Username),
 	)
@@ -160,7 +160,7 @@ func (s *UserService) Login(req *LoginRequest) (*LoginResponse, error) {
 		// Don't fail login for this
 	}
 
-	s.logger.Info("User logged in successfully", 
+	s.logger.Info("User logged in successfully",
 		zap.Uint("user_id", user.ID),
 		zap.String("username", user.Username),
 	)

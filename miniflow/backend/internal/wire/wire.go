@@ -4,10 +4,13 @@
 package wire
 
 import (
+	"miniflow/internal/repository"
 	"miniflow/internal/server"
+	"miniflow/internal/service"
 	"miniflow/pkg/config"
 	"miniflow/pkg/database"
 	"miniflow/pkg/logger"
+	"miniflow/pkg/utils"
 
 	"github.com/google/wire"
 )
@@ -24,10 +27,18 @@ var ProviderSet = wire.NewSet(
 	// Config providers
 	ProvideLoggerConfig,
 	ProvideDatabaseConfig,
+	ProvideJWTConfig,
 
 	// Infrastructure providers
 	ProvideLogger,
 	database.NewDatabase,
+	utils.NewJWTManager,
+
+	// Repository providers
+	repository.NewUserRepository,
+
+	// Service providers
+	service.NewUserService,
 
 	// Server provider
 	server.NewServer,
@@ -50,6 +61,11 @@ func ProvideLogger(cfg *LoggerConfig) (*logger.Logger, error) {
 // ProvideDatabaseConfig provides database configuration
 func ProvideDatabaseConfig(cfg *config.Config) *config.DatabaseConfig {
 	return &cfg.Database
+}
+
+// ProvideJWTConfig provides JWT configuration
+func ProvideJWTConfig(cfg *config.Config) *config.JWTConfig {
+	return &cfg.JWT
 }
 
 // InitializeServer initializes the server with all dependencies

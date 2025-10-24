@@ -97,11 +97,11 @@ const Register: React.FC = () => {
             <Form.Item
               name="email"
               label="邮箱地址"
-              rules={getAntdRules.email(false)}
+              rules={getAntdRules.email(true)}
             >
               <Input
                 prefix={<MailOutlined />}
-                placeholder="请输入邮箱地址（可选）"
+                placeholder="请输入邮箱地址"
                 autoComplete="email"
               />
             </Form.Item>

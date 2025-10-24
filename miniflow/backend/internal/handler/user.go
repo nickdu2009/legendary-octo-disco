@@ -32,7 +32,7 @@ func NewUserHandler(userService *service.UserService, logger *logger.Logger) *Us
 // Register handles user registration
 func (h *UserHandler) Register(c echo.Context) error {
 	var req service.RegisterRequest
-	
+
 	// Bind request data
 	if err := c.Bind(&req); err != nil {
 		h.logger.Warn("Invalid request body for registration", zap.Error(err))
@@ -61,7 +61,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 		})
 	}
 
-	h.logger.Info("User registered successfully via API", 
+	h.logger.Info("User registered successfully via API",
 		zap.Uint("user_id", user.ID),
 		zap.String("username", user.Username),
 	)
@@ -75,7 +75,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 // Login handles user authentication
 func (h *UserHandler) Login(c echo.Context) error {
 	var req service.LoginRequest
-	
+
 	// Bind request data
 	if err := c.Bind(&req); err != nil {
 		h.logger.Warn("Invalid request body for login", zap.Error(err))
@@ -97,7 +97,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 	// Call service to authenticate user
 	loginResp, err := h.userService.Login(&req)
 	if err != nil {
-		h.logger.Warn("Login failed", 
+		h.logger.Warn("Login failed",
 			zap.String("username", req.Username),
 			zap.Error(err),
 		)
@@ -107,7 +107,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 		})
 	}
 
-	h.logger.Info("User logged in successfully via API", 
+	h.logger.Info("User logged in successfully via API",
 		zap.Uint("user_id", loginResp.User.ID),
 		zap.String("username", loginResp.User.Username),
 	)
@@ -130,7 +130,7 @@ func (h *UserHandler) GetProfile(c echo.Context) error {
 
 	user, err := h.userService.GetProfile(userID)
 	if err != nil {
-		h.logger.Error("Failed to get user profile", 
+		h.logger.Error("Failed to get user profile",
 			zap.Uint("user_id", userID),
 			zap.Error(err),
 		)
@@ -157,7 +157,7 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	}
 
 	var req service.UpdateProfileRequest
-	
+
 	// Bind request data
 	if err := c.Bind(&req); err != nil {
 		h.logger.Warn("Invalid request body for profile update", zap.Error(err))
@@ -179,7 +179,7 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	// Call service to update profile
 	user, err := h.userService.UpdateProfile(userID, &req)
 	if err != nil {
-		h.logger.Error("Failed to update user profile", 
+		h.logger.Error("Failed to update user profile",
 			zap.Uint("user_id", userID),
 			zap.Error(err),
 		)
@@ -189,7 +189,7 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 		})
 	}
 
-	h.logger.Info("User profile updated successfully", 
+	h.logger.Info("User profile updated successfully",
 		zap.Uint("user_id", userID),
 	)
 
@@ -213,7 +213,7 @@ func (h *UserHandler) ChangePassword(c echo.Context) error {
 		OldPassword string `json:"old_password" validate:"required"`
 		NewPassword string `json:"new_password" validate:"required,min=6"`
 	}
-	
+
 	// Bind and validate request data
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
@@ -232,7 +232,7 @@ func (h *UserHandler) ChangePassword(c echo.Context) error {
 	// Call service to change password
 	err := h.userService.ChangePassword(userID, req.OldPassword, req.NewPassword)
 	if err != nil {
-		h.logger.Warn("Password change failed", 
+		h.logger.Warn("Password change failed",
 			zap.Uint("user_id", userID),
 			zap.Error(err),
 		)
@@ -254,7 +254,7 @@ func (h *UserHandler) GetUsers(c echo.Context) error {
 	// Get pagination parameters
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	pageSize, _ := strconv.Atoi(c.QueryParam("page_size"))
-	
+
 	if page < 1 {
 		page = 1
 	}
@@ -298,7 +298,7 @@ func (h *UserHandler) DeactivateUser(c echo.Context) error {
 	// Call service to deactivate user
 	err = h.userService.DeactivateUser(uint(userID))
 	if err != nil {
-		h.logger.Error("Failed to deactivate user", 
+		h.logger.Error("Failed to deactivate user",
 			zap.Uint("target_user_id", uint(userID)),
 			zap.Error(err),
 		)
@@ -308,7 +308,7 @@ func (h *UserHandler) DeactivateUser(c echo.Context) error {
 		})
 	}
 
-	h.logger.Info("User deactivated successfully", 
+	h.logger.Info("User deactivated successfully",
 		zap.Uint("target_user_id", uint(userID)),
 	)
 

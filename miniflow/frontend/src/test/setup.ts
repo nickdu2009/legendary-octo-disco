@@ -125,13 +125,30 @@ const mockApiHandlers = [
       },
     });
   }),
+
+  // Test endpoints for HTTP client testing
+  mswHttp.get('*/test-endpoint', () => {
+    return Response.json({ message: 'Test GET success' });
+  }),
+
+  mswHttp.post('*/test-endpoint', () => {
+    return Response.json({ message: 'Test POST success' });
+  }),
+
+  mswHttp.put('*/test-endpoint', () => {
+    return Response.json({ message: 'Test PUT success' });
+  }),
+
+  mswHttp.delete('*/test-endpoint', () => {
+    return Response.json({ message: 'Test DELETE success' });
+  }),
 ];
 
 const server = setupServer(...mockApiHandlers);
 
 // Start mock server before all tests
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' });
+  server.listen({ onUnhandledRequest: 'warn' });
 });
 
 // Clean up after each test

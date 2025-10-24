@@ -1,17 +1,20 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { userApi } from '../userApi';
 
-// Mock the http client
-const mockHttp = {
-  get: vi.fn(),
-  post: vi.fn(),
-  put: vi.fn(),
-  delete: vi.fn(),
-};
-
+// Mock the http client before importing userApi
 vi.mock('../../utils/http', () => ({
-  http: mockHttp,
+  http: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
 }));
+
+// Import after mocking
+import { userApi } from '../userApi';
+import { http } from '../../utils/http';
+
+const mockHttp = vi.mocked(http);
 
 describe('userApi', () => {
   beforeEach(() => {

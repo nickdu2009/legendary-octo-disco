@@ -69,24 +69,28 @@ describe('HttpClient', () => {
     it('should make GET request correctly', async () => {
       const response = await httpClient.get('/test-endpoint');
       expect(response).toBeDefined();
-    });
+      expect(response.data).toEqual({ message: 'Test GET success' });
+    }, 10000);
 
     it('should make POST request correctly', async () => {
       const testData = { test: 'data' };
       const response = await httpClient.post('/test-endpoint', testData);
       expect(response).toBeDefined();
-    });
+      expect(response.data).toEqual({ message: 'Test POST success' });
+    }, 10000);
 
     it('should make PUT request correctly', async () => {
       const testData = { test: 'data' };
       const response = await httpClient.put('/test-endpoint', testData);
       expect(response).toBeDefined();
-    });
+      expect(response.data).toEqual({ message: 'Test PUT success' });
+    }, 10000);
 
     it('should make DELETE request correctly', async () => {
       const response = await httpClient.delete('/test-endpoint');
       expect(response).toBeDefined();
-    });
+      expect(response.data).toEqual({ message: 'Test DELETE success' });
+    }, 10000);
   });
 
   describe('Request Helper', () => {

@@ -1,16 +1,29 @@
-/* Reset and base styles */
+/* 彻底重置所有默认样式 */
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body, html {
+  box-sizing: border-box !important;
   margin: 0 !important;
   padding: 0 !important;
+}
+
+html {
   height: 100% !important;
   width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
   overflow: hidden !important;
+}
+
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100vh !important;
+  width: 100vw !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
 }
 
 #root {
@@ -22,6 +35,8 @@ body, html {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
 }
 
 /* Main Layout Styles */
@@ -32,9 +47,12 @@ body, html {
   margin: 0 !important;
   padding: 0 !important;
   overflow: hidden !important;
-  position: absolute !important;
+  position: fixed !important;
   top: 0 !important;
   left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1 !important;
 }
 
 .main-layout.ant-layout {

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { shallow } from 'zustand/shallow';
 import type { User, LoginRequest, RegisterRequest, UpdateProfileRequest, ChangePasswordRequest, AuthState } from '../types/user';
 import { userApi } from '../services/userApi';
 import { http } from '../utils/http';
@@ -196,25 +197,35 @@ export const useUserStore = create<UserStore>()(
   )
 );
 
-// Selectors for better performance
-export const useAuth = () => useUserStore((state) => ({
-  user: state.user,
-  token: state.token,
-  isAuthenticated: state.isAuthenticated,
-  isLoading: state.isLoading,
-}));
+// Selectors for better performance - use shallow comparison
 
-export const useAuthActions = () => useUserStore((state) => ({
-  login: state.login,
-  register: state.register,
-  logout: state.logout,
-  updateProfile: state.updateProfile,
-  changePassword: state.changePassword,
-  refreshProfile: state.refreshProfile,
-}));
+export const useAuth = () => useUserStore(
+  (state) => ({
+    user: state.user,
+    token: state.token,
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading,
+  }),
+  shallow
+);
 
-export const useUserInfo = () => useUserStore((state) => ({
-  user: state.user,
-  isAdmin: state.isAdmin,
-  hasRole: state.hasRole,
-}));
+export const useAuthActions = () => useUserStore(
+  (state) => ({
+    login: state.login,
+    register: state.register,
+    logout: state.logout,
+    updateProfile: state.updateProfile,
+    changePassword: state.changePassword,
+    refreshProfile: state.refreshProfile,
+  }),
+  shallow
+);
+
+export const useUserInfo = () => useUserStore(
+  (state) => ({
+    user: state.user,
+    isAdmin: state.isAdmin,
+    hasRole: state.hasRole,
+  }),
+  shallow
+);

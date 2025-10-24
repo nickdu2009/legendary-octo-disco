@@ -306,31 +306,39 @@ body {
 }
 
 .welcome-section {
-  margin-bottom: 12px; /* 进一步减少间距 */
-  padding: 16px; /* 进一步减少内边距 */
+  margin-bottom: 8px; /* 最小间距 */
+  padding: 12px; /* 最小内边距 */
   background: #fff;
-  border-radius: 6px; /* 进一步减少圆角 */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 4px; /* 最小圆角 */
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .stats-section {
-  margin-bottom: 12px; /* 进一步减少间距 */
+  margin-bottom: 8px; /* 最小间距 */
 }
 
 .stats-section .ant-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.2s, transform 0.2s;
 }
 
 .stats-section .ant-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.stats-section .ant-card .ant-card-body {
+  padding: 12px !important;
 }
 
 .content-section .ant-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.content-section .ant-card .ant-card-body {
+  padding: 16px !important;
 }
 
 .process-card {

@@ -138,84 +138,66 @@ const Dashboard: React.FC = () => {
         </Paragraph>
       </div>
 
-      {/* Statistics Cards */}
-      <Row gutter={[12, 12]} className="stats-section">
-        <Col xs={24} sm={12} lg={6}>
-          <Card hoverable>
+      {/* Statistics Cards - 紧凑布局 */}
+      <Row gutter={[8, 8]} className="stats-section">
+        <Col xs={12} sm={12} lg={6}>
+          <Card hoverable size="small">
             <Statistic
               title="我的流程"
               value={mockStats.myProcesses}
               prefix={<ApartmentOutlined style={{ color: '#1890ff' }} />}
               suffix="个"
+              valueStyle={{ fontSize: '20px' }}
             />
-            <Button 
-              type="link" 
-              size="small" 
-              onClick={() => navigate('/process')}
-            >
-              查看详情
-            </Button>
           </Card>
         </Col>
         
-        <Col xs={24} sm={12} lg={6}>
-          <Card hoverable>
+        <Col xs={12} sm={12} lg={6}>
+          <Card hoverable size="small">
             <Statistic
               title="待办任务"
               value={mockStats.pendingTasks}
               prefix={<CheckSquareOutlined style={{ color: '#fa8c16' }} />}
               suffix="个"
+              valueStyle={{ fontSize: '20px' }}
             />
-            <Button 
-              type="link" 
-              size="small" 
-              onClick={() => navigate('/tasks')}
-            >
-              立即处理
-            </Button>
           </Card>
         </Col>
         
-        <Col xs={24} sm={12} lg={6}>
-          <Card hoverable>
+        <Col xs={12} sm={12} lg={6}>
+          <Card hoverable size="small">
             <Statistic
               title="已完成任务"
               value={mockStats.completedTasks}
               prefix={<ClockCircleOutlined style={{ color: '#52c41a' }} />}
               suffix="个"
+              valueStyle={{ fontSize: '20px' }}
             />
-            <Button 
-              type="link" 
-              size="small" 
-              onClick={() => navigate('/tasks?filter=completed')}
-            >
-              查看历史
-            </Button>
           </Card>
         </Col>
         
-        <Col xs={24} sm={12} lg={6}>
-          <Card hoverable>
+        <Col xs={12} sm={12} lg={6}>
+          <Card hoverable size="small">
             <Statistic
               title="处理时长"
               value={mockStats.totalProcessTime}
               prefix={<ClockCircleOutlined style={{ color: '#722ed1' }} />}
+              valueStyle={{ fontSize: '20px' }}
             />
-            <Text type="secondary" style={{ fontSize: '12px' }}>
-              本月累计
-            </Text>
           </Card>
         </Col>
       </Row>
 
-      <Row gutter={[12, 12]} className="content-section">
+      <Row gutter={[8, 8]} className="content-section">
         {/* Recent Processes */}
         <Col xs={24} lg={16}>
           <Card 
             title="最近的流程" 
+            size="small"
             extra={
               <Button 
                 type="primary" 
+                size="small"
                 icon={<PlusOutlined />}
                 onClick={() => navigate('/process/create')}
               >
@@ -329,11 +311,12 @@ const Dashboard: React.FC = () => {
         {/* Regular User Quick Actions - 右侧区域 */}
         {!isAdmin() && (
           <Col xs={24} lg={8}>
-            <Card title="快速操作">
-              <Space direction="vertical" style={{ width: '100%' }}>
+            <Card title="快速操作" size="small">
+              <Space direction="vertical" style={{ width: '100%' }} size="small">
                 <Button 
                   type="primary" 
                   block 
+                  size="large"
                   icon={<PlusOutlined />}
                   onClick={() => navigate('/process/create')}
                 >

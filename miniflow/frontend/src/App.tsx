@@ -13,6 +13,8 @@ import ProcessTest from './pages/process/ProcessTest';
 import ReactFlowDemo from './pages/process/ReactFlowDemo';
 import BasicProcessDemo from './pages/process/BasicProcessDemo';
 import EnhancedProcessDemo from './pages/process/EnhancedProcessDemo';
+import ProductionProcessEditor from './pages/process/ProductionProcessEditor';
+import Day3FeatureTest from './pages/process/Day3FeatureTest';
 
 // Components
 import MainLayout from './components/layout/MainLayout';
@@ -89,9 +91,11 @@ function App() {
             <Route path="process/enhanced" element={<EnhancedProcessDemo />} />
             <Route path="process/demo" element={<ReactFlowDemo />} />
             <Route path="process/test" element={<ProcessTest />} />
-            <Route path="process/create" element={<ProcessEdit />} />
-            <Route path="process/:id/edit" element={<ProcessEdit />} />
-            <Route path="process/:id/view" element={<ProcessEdit />} />
+            <Route path="process/day3" element={<Day3FeatureTest />} />
+            <Route path="process/production" element={<ProductionProcessEditor />} />
+            <Route path="process/create" element={<ProductionProcessEditor />} />
+            <Route path="process/:id/edit" element={<ProductionProcessEditor />} />
+            <Route path="process/:id/view" element={<ProductionProcessEditor />} />
 
             {/* Admin routes */}
             <Route 

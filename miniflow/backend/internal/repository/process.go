@@ -31,7 +31,7 @@ func (r *ProcessRepository) Create(process *model.ProcessDefinition) error {
 	// Check if key already exists
 	var count int64
 	if err := r.db.Model(&model.ProcessDefinition{}).
-		Where("key = ?", process.Key).
+		Where("process_process_key = ?", process.Key).
 		Count(&count).Error; err != nil {
 		return err
 	}
@@ -40,12 +40,15 @@ func (r *ProcessRepository) Create(process *model.ProcessDefinition) error {
 		// Get the latest version for this key
 		var latestVersion int
 		if err := r.db.Model(&model.ProcessDefinition{}).
-			Where("key = ?", process.Key).
+			Where("process_process_key = ?", process.Key).
 			Select("COALESCE(MAX(version), 0)").
 			Scan(&latestVersion).Error; err != nil {
 			return err
 		}
 		process.Version = latestVersion + 1
+	} else {
+		// First version
+		process.Version = 1
 	}
 
 	return r.db.Create(process).Error
@@ -68,7 +71,7 @@ func (r *ProcessRepository) GetByID(id uint) (*model.ProcessDefinition, error) {
 func (r *ProcessRepository) GetByKey(key string) (*model.ProcessDefinition, error) {
 	var process model.ProcessDefinition
 	err := r.db.Preload("Creator").
-		Where("key = ?", key).
+		Where("process_key = ?", key).
 		Order("version DESC").
 		First(&process).Error
 	if err != nil {
@@ -84,7 +87,7 @@ func (r *ProcessRepository) GetByKey(key string) (*model.ProcessDefinition, erro
 func (r *ProcessRepository) GetByKeyAndVersion(key string, version int) (*model.ProcessDefinition, error) {
 	var process model.ProcessDefinition
 	err := r.db.Preload("Creator").
-		Where("key = ? AND version = ?", key, version).
+		Where("process_key = ? AND version = ?", key, version).
 		First(&process).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -149,7 +152,7 @@ func (r *ProcessRepository) List(offset, limit int, filters map[string]interface
 func (r *ProcessRepository) GetLatestVersion(key string) (*model.ProcessDefinition, error) {
 	var process model.ProcessDefinition
 	err := r.db.Preload("Creator").
-		Where("key = ?", key).
+		Where("process_key = ?", key).
 		Order("version DESC").
 		First(&process).Error
 	if err != nil {
@@ -165,7 +168,7 @@ func (r *ProcessRepository) GetLatestVersion(key string) (*model.ProcessDefiniti
 func (r *ProcessRepository) GetVersions(key string) ([]*model.ProcessDefinition, error) {
 	var processes []*model.ProcessDefinition
 	err := r.db.Preload("Creator").
-		Where("key = ?", key).
+		Where("process_key = ?", key).
 		Order("version DESC").
 		Find(&processes).Error
 	return processes, err
@@ -208,7 +211,7 @@ func (r *ProcessRepository) Search(keyword string) ([]*model.ProcessDefinition, 
 func (r *ProcessRepository) ExistsByKey(key string) (bool, error) {
 	var count int64
 	err := r.db.Model(&model.ProcessDefinition{}).
-		Where("key = ?", key).
+		Where("process_key = ?", key).
 		Count(&count).Error
 	return count > 0, err
 }
@@ -217,7 +220,7 @@ func (r *ProcessRepository) ExistsByKey(key string) (bool, error) {
 func (r *ProcessRepository) GetMaxVersion(key string) (int, error) {
 	var maxVersion int
 	err := r.db.Model(&model.ProcessDefinition{}).
-		Where("key = ?", key).
+		Where("process_key = ?", key).
 		Select("COALESCE(MAX(version), 0)").
 		Scan(&maxVersion).Error
 	return maxVersion, err

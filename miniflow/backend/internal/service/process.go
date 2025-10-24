@@ -91,7 +91,7 @@ func (s *ProcessService) CreateProcess(userID uint, req *CreateProcessRequest) (
 	exists, err := s.processRepo.ExistsByKey(req.Key)
 	if err != nil {
 		s.logger.Error("Failed to check process key existence", zap.Error(err))
-		return nil, errors.New("系统错误，请稍后重试")
+		return nil, fmt.Errorf("检查流程标识失败: %v", err)
 	}
 	if exists {
 		return nil, errors.New("流程标识已存在")
@@ -99,7 +99,7 @@ func (s *ProcessService) CreateProcess(userID uint, req *CreateProcessRequest) (
 
 	// Create process definition
 	process := &model.ProcessDefinition{
-		Key:         req.Key,
+		ProcessKey:  req.Key,
 		Name:        req.Name,
 		Description: req.Description,
 		Category:    req.Category,
@@ -116,7 +116,7 @@ func (s *ProcessService) CreateProcess(userID uint, req *CreateProcessRequest) (
 
 	if err := s.processRepo.Create(process); err != nil {
 		s.logger.Error("Failed to create process definition", zap.Error(err))
-		return nil, errors.New("创建流程定义失败")
+		return nil, fmt.Errorf("创建流程定义失败: %v", err)
 	}
 
 	s.logger.Info("Process definition created successfully",
@@ -468,7 +468,7 @@ func (s *ProcessService) toProcessResponse(process *model.ProcessDefinition) *Pr
 
 	return &ProcessResponse{
 		ID:          process.ID,
-		Key:         process.Key,
+		Key:         process.ProcessKey,
 		Name:        process.Name,
 		Version:     process.Version,
 		Description: process.Description,

@@ -49,7 +49,7 @@ const Register: React.FC = () => {
       </div>
       
       <div className="auth-content">
-        <Card className="auth-card auth-card-wide" bordered={false}>
+        <Card className="auth-card auth-card-wide" variant="outlined">
           <div className="auth-header">
             <div className="auth-logo">
               <img src="/vite.svg" alt="MiniFlow" className="logo-image" />

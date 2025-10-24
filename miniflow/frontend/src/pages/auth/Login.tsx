@@ -40,7 +40,7 @@ const Login: React.FC = () => {
       </div>
       
       <div className="auth-content">
-        <Card className="auth-card" bordered={false}>
+        <Card className="auth-card" variant="outlined">
           <div className="auth-header">
             <div className="auth-logo">
               <img src="/vite.svg" alt="MiniFlow" className="logo-image" />

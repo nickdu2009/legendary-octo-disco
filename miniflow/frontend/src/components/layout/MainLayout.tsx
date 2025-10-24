@@ -139,8 +139,8 @@ const MainLayout: React.FC = () => {
         collapsible 
         collapsed={collapsed}
         className="main-sidebar"
-        width={240}
-        collapsedWidth={80}
+        width={200}
+        collapsedWidth={60}
       >
         <div className="sidebar-header">
           <div className="logo">
@@ -247,19 +247,21 @@ const MainLayout: React.FC = () => {
           </div>
         </Content>
 
-        {/* Footer */}
-        <Footer className="main-footer">
-          <div className="footer-content">
-            <Text type="secondary">
-              MiniFlow 极简版流程引擎 © 2025 Created with ❤️
-            </Text>
-            <Space split={<Divider type="vertical" />}>
-              <Button type="link" size="small">帮助文档</Button>
-              <Button type="link" size="small">意见反馈</Button>
-              <Button type="link" size="small">关于我们</Button>
-            </Space>
-          </div>
-        </Footer>
+        {/* Footer - 临时移除以节省空间 */}
+        {false && (
+          <Footer className="main-footer">
+            <div className="footer-content">
+              <Text type="secondary">
+                MiniFlow 极简版流程引擎 © 2025 Created with ❤️
+              </Text>
+              <Space split={<Divider type="vertical" />}>
+                <Button type="link" size="small">帮助文档</Button>
+                <Button type="link" size="small">意见反馈</Button>
+                <Button type="link" size="small">关于我们</Button>
+              </Space>
+            </div>
+          </Footer>
+        )}
       </Layout>
     </Layout>
   );

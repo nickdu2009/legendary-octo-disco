@@ -210,7 +210,7 @@ const Dashboard: React.FC = () => {
 
       <Row gutter={[12, 12]} className="content-section">
         {/* Recent Processes */}
-        <Col xs={24} lg={16}>
+        <Col xs={24} lg={isAdmin() ? 16 : 18}>
           <Card 
             title="最近的流程" 
             extra={
@@ -328,7 +328,7 @@ const Dashboard: React.FC = () => {
 
         {/* Regular User Quick Actions */}
         {!isAdmin() && (
-          <Col xs={24} lg={8}>
+          <Col xs={24} lg={6}>
             <Card title="快速操作">
               <Space direction="vertical" style={{ width: '100%' }}>
                 <Button 

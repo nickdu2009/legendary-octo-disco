@@ -103,3 +103,9 @@ docs/.doctrees/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Playwright test files and downloads
+.playwright-mcp/
+playwright-downloads/
+test-downloads/
+*.playwright/

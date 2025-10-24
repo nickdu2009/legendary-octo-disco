@@ -5,8 +5,6 @@
 
 import type { Node, Edge } from 'reactflow';
 import type { 
-  ProcessNode, 
-  ProcessEdge, 
   BackendProcessNode, 
   BackendProcessFlow, 
   BackendProcessDefinitionData,
@@ -271,7 +269,7 @@ export class ProcessConverter {
   /**
    * 创建默认节点数据
    */
-  static createDefaultNodeData(type: string): any {
+  static createDefaultNodeData(type: string): Record<string, unknown> {
     const defaultLabels: { [key: string]: string } = {
       start: '开始',
       end: '结束',
@@ -321,7 +319,7 @@ export class ProcessConverter {
     const otherNodes = layoutNodes.filter(n => n.type !== 'start' && n.type !== 'end');
 
     let x = 100;
-    let y = 200;
+    const y = 200;
     const spacing = 200;
 
     // 布局开始节点

@@ -75,12 +75,19 @@ const ProcessDesigner: React.FC<ProcessDesignerProps> = ({
   // Handle connection creation
   const onConnect: OnConnect = useCallback((params: Connection) => {
     if (readonly) return;
+    
+    if (!params.source || !params.target) {
+      message.error('连线创建失败：缺少源节点或目标节点');
+      return;
+    }
 
     const edge: Edge = {
       ...params,
-      id: ProcessConverter.generateEdgeId(params.source!, params.target!),
+      id: ProcessConverter.generateEdgeId(params.source, params.target),
       type: 'smoothstep',
       animated: true,
+      source: params.source,
+      target: params.target,
     };
     
     setEdges((eds) => addEdge(edge, eds));
@@ -159,7 +166,7 @@ const ProcessDesigner: React.FC<ProcessDesignerProps> = ({
   }, [setNodes, readonly]);
 
   // Update node data
-  const updateNodeData = useCallback((nodeId: string, updates: any) => {
+  const updateNodeData = useCallback((nodeId: string, updates: Record<string, unknown>) => {
     if (readonly) return;
 
     setNodes((nds) =>

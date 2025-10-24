@@ -12,6 +12,7 @@ import ProcessEdit from './pages/process/ProcessEdit';
 import ProcessTest from './pages/process/ProcessTest';
 import ReactFlowDemo from './pages/process/ReactFlowDemo';
 import BasicProcessDemo from './pages/process/BasicProcessDemo';
+import EnhancedProcessDemo from './pages/process/EnhancedProcessDemo';
 
 // Components
 import MainLayout from './components/layout/MainLayout';
@@ -85,6 +86,7 @@ function App() {
             {/* Process routes */}
             <Route path="process" element={<ProcessList />} />
             <Route path="process/basic" element={<BasicProcessDemo />} />
+            <Route path="process/enhanced" element={<EnhancedProcessDemo />} />
             <Route path="process/demo" element={<ReactFlowDemo />} />
             <Route path="process/test" element={<ProcessTest />} />
             <Route path="process/create" element={<ProcessEdit />} />

@@ -7,6 +7,8 @@ import zhCN from 'antd/locale/zh_CN';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/dashboard/Dashboard';
+import ProcessList from './pages/process/ProcessList';
+import ProcessDesign from './pages/process/ProcessDesign';
 
 // Components
 import MainLayout from './components/layout/MainLayout';
@@ -48,16 +50,11 @@ function App() {
             {/* Main pages */}
             <Route path="dashboard" element={<Dashboard />} />
             
-            {/* Placeholder pages for future development */}
-            <Route 
-              path="process" 
-              element={
-                <div style={{ padding: 24, textAlign: 'center' }}>
-                  <h2>流程管理</h2>
-                  <p>流程管理功能将在后续版本中实现</p>
-                </div>
-              } 
-            />
+            {/* Process Management Routes */}
+            <Route path="process" element={<ProcessList />} />
+            <Route path="process/new" element={<ProcessDesign />} />
+            <Route path="process/:id/edit" element={<ProcessDesign />} />
+            <Route path="process/:id/view" element={<ProcessDesign />} />
             <Route 
               path="tasks" 
               element={

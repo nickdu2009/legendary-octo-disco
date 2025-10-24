@@ -17,6 +17,9 @@ import ProductionProcessEditor from './pages/process/ProductionProcessEditor';
 import Day3FeatureTest from './pages/process/Day3FeatureTest';
 import EnhancedProcessList from './pages/process/EnhancedProcessList';
 import Day4Test from './pages/process/Day4Test';
+import SystemIntegrationTest from './pages/process/SystemIntegrationTest';
+import PerformanceMonitor from './pages/process/PerformanceMonitor';
+import EndToEndTest from './pages/process/EndToEndTest';
 
 // Components
 import MainLayout from './components/layout/MainLayout';
@@ -86,6 +89,9 @@ function App() {
             <Route path="process/test" element={<ProcessTest />} />
             <Route path="process/day3" element={<Day3FeatureTest />} />
             <Route path="process/day4" element={<Day4Test />} />
+            <Route path="process/day5/integration" element={<SystemIntegrationTest />} />
+            <Route path="process/day5/performance" element={<PerformanceMonitor />} />
+            <Route path="process/day5/e2e" element={<EndToEndTest />} />
             <Route path="process/production" element={<ProductionProcessEditor />} />
             <Route path="process/create" element={<ProductionProcessEditor />} />
             <Route path="process/:id/edit" element={<ProductionProcessEditor />} />

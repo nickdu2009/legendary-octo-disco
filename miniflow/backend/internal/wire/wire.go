@@ -38,9 +38,11 @@ var ProviderSet = wire.NewSet(
 
 	// Repository providers
 	repository.NewUserRepository,
+	repository.NewProcessRepository,
 
 	// Service providers
 	service.NewUserService,
+	service.NewProcessService,
 
 	// Handler and Middleware providers
 	handler.NewRouter,

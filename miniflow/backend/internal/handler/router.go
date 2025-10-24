@@ -13,6 +13,7 @@ import (
 // Router handles HTTP routing setup
 type Router struct {
 	userHandler    *UserHandler
+	processHandler *ProcessHandler
 	authMiddleware *middleware.AuthMiddleware
 	logger         *logger.Logger
 }
@@ -20,14 +21,17 @@ type Router struct {
 // NewRouter creates a new router
 func NewRouter(
 	userService *service.UserService,
+	processService *service.ProcessService,
 	jwtManager *utils.JWTManager,
 	logger *logger.Logger,
 ) *Router {
 	userHandler := NewUserHandler(userService, logger)
+	processHandler := NewProcessHandler(processService, logger)
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager, logger)
 
 	return &Router{
 		userHandler:    userHandler,
+		processHandler: processHandler,
 		authMiddleware: authMiddleware,
 		logger:         logger,
 	}
@@ -67,6 +71,20 @@ func (r *Router) SetupRoutes(e *echo.Echo) {
 		protected.GET("/profile", r.userHandler.GetProfile)
 		protected.PUT("/profile", r.userHandler.UpdateProfile)
 		protected.POST("/change-password", r.userHandler.ChangePassword)
+	}
+
+	// Process routes (authentication required)
+	process := api.Group("/process")
+	process.Use(r.authMiddleware.JWTAuth())
+	{
+		process.GET("", r.processHandler.GetProcesses)
+		process.POST("", r.processHandler.CreateProcess)
+		process.GET("/:id", r.processHandler.GetProcess)
+		process.PUT("/:id", r.processHandler.UpdateProcess)
+		process.DELETE("/:id", r.processHandler.DeleteProcess)
+		process.POST("/:id/copy", r.processHandler.CopyProcess)
+		process.POST("/:id/publish", r.processHandler.PublishProcess)
+		process.GET("/stats", r.processHandler.GetProcessStats)
 	}
 
 	// Admin routes (authentication + admin role required)

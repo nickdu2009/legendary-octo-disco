@@ -63,7 +63,6 @@ body {
   right: 0 !important;
   bottom: 0 !important;
   z-index: 1 !important;
-  border: 3px solid red !important; /* 临时调试边框 */
 }
 
 .main-layout.ant-layout {

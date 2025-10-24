@@ -8,7 +8,7 @@ import (
 // ProcessDefinition represents a process definition in the system
 type ProcessDefinition struct {
 	BaseModel
-	Key            string `gorm:"type:varchar(100);not null;uniqueIndex:idx_key_version,composite:key" json:"key"`
+	Key            string `gorm:"column:key;type:varchar(100);not null;uniqueIndex:idx_key_version,composite:key" json:"key"`
 	Name           string `gorm:"type:varchar(255);not null;index" json:"name"`
 	Version        int    `gorm:"not null;default:1;uniqueIndex:idx_key_version,composite:version" json:"version"`
 	Description    string `gorm:"type:text" json:"description"`

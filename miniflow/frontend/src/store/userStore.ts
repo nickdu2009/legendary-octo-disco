@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { shallow } from 'zustand/shallow';
 import type { User, LoginRequest, RegisterRequest, UpdateProfileRequest, ChangePasswordRequest, AuthState } from '../types/user';
 import { userApi } from '../services/userApi';
 import { http } from '../utils/http';
@@ -197,35 +196,31 @@ export const useUserStore = create<UserStore>()(
   )
 );
 
-// Selectors for better performance - use shallow comparison
+// Selectors for better performance - use individual selectors to avoid object creation
+export const useAuth = () => {
+  const user = useUserStore(state => state.user);
+  const token = useUserStore(state => state.token);
+  const isAuthenticated = useUserStore(state => state.isAuthenticated);
+  const isLoading = useUserStore(state => state.isLoading);
+  
+  return { user, token, isAuthenticated, isLoading };
+};
 
-export const useAuth = () => useUserStore(
-  (state) => ({
-    user: state.user,
-    token: state.token,
-    isAuthenticated: state.isAuthenticated,
-    isLoading: state.isLoading,
-  }),
-  shallow
-);
+export const useAuthActions = () => {
+  const login = useUserStore(state => state.login);
+  const register = useUserStore(state => state.register);
+  const logout = useUserStore(state => state.logout);
+  const updateProfile = useUserStore(state => state.updateProfile);
+  const changePassword = useUserStore(state => state.changePassword);
+  const refreshProfile = useUserStore(state => state.refreshProfile);
+  
+  return { login, register, logout, updateProfile, changePassword, refreshProfile };
+};
 
-export const useAuthActions = () => useUserStore(
-  (state) => ({
-    login: state.login,
-    register: state.register,
-    logout: state.logout,
-    updateProfile: state.updateProfile,
-    changePassword: state.changePassword,
-    refreshProfile: state.refreshProfile,
-  }),
-  shallow
-);
-
-export const useUserInfo = () => useUserStore(
-  (state) => ({
-    user: state.user,
-    isAdmin: state.isAdmin,
-    hasRole: state.hasRole,
-  }),
-  shallow
-);
+export const useUserInfo = () => {
+  const user = useUserStore(state => state.user);
+  const isAdmin = useUserStore(state => state.isAdmin);
+  const hasRole = useUserStore(state => state.hasRole);
+  
+  return { user, isAdmin, hasRole };
+};

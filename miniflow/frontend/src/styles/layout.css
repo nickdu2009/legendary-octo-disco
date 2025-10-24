@@ -38,7 +38,6 @@ body, html {
 .ant-layout.main-content-layout {
   flex: 1 1 auto !important;
   width: 0 !important; /* 让flex正确计算宽度 */
-  background: #ff0000 !important; /* 临时红色背景用于调试 */
   min-width: 300px !important;
 }
 

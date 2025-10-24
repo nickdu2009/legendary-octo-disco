@@ -139,7 +139,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Statistics Cards */}
-      <Row gutter={[16, 16]} className="stats-section">
+      <Row gutter={[12, 12]} className="stats-section">
         <Col xs={24} sm={12} lg={6}>
           <Card hoverable>
             <Statistic
@@ -208,7 +208,7 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]} className="content-section">
+      <Row gutter={[12, 12]} className="content-section">
         {/* Recent Processes */}
         <Col xs={24} lg={12}>
           <Card 

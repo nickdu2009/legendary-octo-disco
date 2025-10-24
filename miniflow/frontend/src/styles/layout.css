@@ -230,10 +230,12 @@ body, html {
 }
 
 .content-wrapper {
-  padding: 24px;
-  max-width: none !important; /* 移除最大宽度限制 */
+  padding: 12px !important; /* 进一步减少内边距 */
+  max-width: none !important;
   margin: 0 !important;
   width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Footer Styles */
@@ -261,15 +263,15 @@ body, html {
 }
 
 .welcome-section {
-  margin-bottom: 24px;
-  padding: 24px;
+  margin-bottom: 16px; /* 减少间距 */
+  padding: 20px; /* 减少内边距 */
   background: #fff;
-  border-radius: 12px;
+  border-radius: 8px; /* 减少圆角 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .stats-section {
-  margin-bottom: 24px;
+  margin-bottom: 16px; /* 减少间距 */
 }
 
 .stats-section .ant-card {

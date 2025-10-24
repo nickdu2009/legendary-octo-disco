@@ -99,7 +99,7 @@ func (s *ProcessService) CreateProcess(userID uint, req *CreateProcessRequest) (
 
 	// Create process definition
 	process := &model.ProcessDefinition{
-		Key:         req.Key,
+		ProcessKey:  req.Key,
 		Name:        req.Name,
 		Description: req.Description,
 		Category:    req.Category,
@@ -119,9 +119,9 @@ func (s *ProcessService) CreateProcess(userID uint, req *CreateProcessRequest) (
 		return nil, fmt.Errorf("创建流程定义失败: %v", err)
 	}
 
-	s.logger.Info("Process definition created successfully",
+	s.logger.Info("Process definition created successfully", 
 		zap.Uint("process_id", process.ID),
-		zap.String("key", process.Key),
+		zap.String("key", process.ProcessKey),
 	)
 
 	return s.toProcessResponse(process), nil
@@ -317,7 +317,7 @@ func (s *ProcessService) CopyProcess(processID uint, userID uint) (*ProcessRespo
 
 	// Create copy request
 	copyReq := &CreateProcessRequest{
-		Key:         fmt.Sprintf("%s_copy_%d", originalProcess.Key, time.Now().Unix()),
+		Key:         fmt.Sprintf("%s_copy_%d", originalProcess.ProcessKey, time.Now().Unix()),
 		Name:        fmt.Sprintf("%s (副本)", originalProcess.Name),
 		Description: originalProcess.Description,
 		Category:    originalProcess.Category,
@@ -468,7 +468,7 @@ func (s *ProcessService) toProcessResponse(process *model.ProcessDefinition) *Pr
 
 	return &ProcessResponse{
 		ID:          process.ID,
-		Key:         process.Key,
+		Key:         process.ProcessKey,
 		Name:        process.Name,
 		Version:     process.Version,
 		Description: process.Description,

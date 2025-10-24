@@ -34,35 +34,35 @@ func NewProcessService(
 
 // CreateProcessRequest represents process creation request
 type CreateProcessRequest struct {
-	Key         string                        `json:"key" validate:"required,min=3,max=100,alphanum_underscore"`
-	Name        string                        `json:"name" validate:"required,min=1,max=255"`
-	Description string                        `json:"description"`
-	Category    string                        `json:"category"`
-	Definition  model.ProcessDefinitionData   `json:"definition"`
+	Key         string                      `json:"key" validate:"required,min=3,max=100,alphanum_underscore"`
+	Name        string                      `json:"name" validate:"required,min=1,max=255"`
+	Description string                      `json:"description"`
+	Category    string                      `json:"category"`
+	Definition  model.ProcessDefinitionData `json:"definition"`
 }
 
 // UpdateProcessRequest represents process update request
 type UpdateProcessRequest struct {
-	Name        string                        `json:"name" validate:"required,min=1,max=255"`
-	Description string                        `json:"description"`
-	Category    string                        `json:"category"`
-	Definition  model.ProcessDefinitionData   `json:"definition"`
+	Name        string                      `json:"name" validate:"required,min=1,max=255"`
+	Description string                      `json:"description"`
+	Category    string                      `json:"category"`
+	Definition  model.ProcessDefinitionData `json:"definition"`
 }
 
 // ProcessResponse represents process response data
 type ProcessResponse struct {
-	ID             uint                        `json:"id"`
-	Key            string                      `json:"key"`
-	Name           string                      `json:"name"`
-	Version        int                         `json:"version"`
-	Description    string                      `json:"description"`
-	Category       string                      `json:"category"`
-	Status         string                      `json:"status"`
-	Definition     model.ProcessDefinitionData `json:"definition"`
-	CreatedBy      uint                        `json:"created_by"`
-	CreatorName    string                      `json:"creator_name"`
-	CreatedAt      time.Time                   `json:"created_at"`
-	UpdatedAt      time.Time                   `json:"updated_at"`
+	ID          uint                        `json:"id"`
+	Key         string                      `json:"key"`
+	Name        string                      `json:"name"`
+	Version     int                         `json:"version"`
+	Description string                      `json:"description"`
+	Category    string                      `json:"category"`
+	Status      string                      `json:"status"`
+	Definition  model.ProcessDefinitionData `json:"definition"`
+	CreatedBy   uint                        `json:"created_by"`
+	CreatorName string                      `json:"creator_name"`
+	CreatedAt   time.Time                   `json:"created_at"`
+	UpdatedAt   time.Time                   `json:"updated_at"`
 }
 
 // ProcessListResponse represents process list response
@@ -75,7 +75,7 @@ type ProcessListResponse struct {
 
 // CreateProcess creates a new process definition
 func (s *ProcessService) CreateProcess(userID uint, req *CreateProcessRequest) (*ProcessResponse, error) {
-	s.logger.Info("Creating process definition", 
+	s.logger.Info("Creating process definition",
 		zap.String("key", req.Key),
 		zap.String("name", req.Name),
 		zap.Uint("user_id", userID),
@@ -119,7 +119,7 @@ func (s *ProcessService) CreateProcess(userID uint, req *CreateProcessRequest) (
 		return nil, errors.New("创建流程定义失败")
 	}
 
-	s.logger.Info("Process definition created successfully", 
+	s.logger.Info("Process definition created successfully",
 		zap.Uint("process_id", process.ID),
 		zap.String("key", process.Key),
 	)
@@ -131,7 +131,7 @@ func (s *ProcessService) CreateProcess(userID uint, req *CreateProcessRequest) (
 func (s *ProcessService) GetProcess(processID uint) (*ProcessResponse, error) {
 	process, err := s.processRepo.GetByID(processID)
 	if err != nil {
-		s.logger.Error("Failed to get process definition", 
+		s.logger.Error("Failed to get process definition",
 			zap.Uint("process_id", processID),
 			zap.Error(err),
 		)
@@ -143,7 +143,7 @@ func (s *ProcessService) GetProcess(processID uint) (*ProcessResponse, error) {
 
 // UpdateProcess updates a process definition
 func (s *ProcessService) UpdateProcess(processID uint, userID uint, req *UpdateProcessRequest) (*ProcessResponse, error) {
-	s.logger.Info("Updating process definition", 
+	s.logger.Info("Updating process definition",
 		zap.Uint("process_id", processID),
 		zap.Uint("user_id", userID),
 	)
@@ -156,7 +156,7 @@ func (s *ProcessService) UpdateProcess(processID uint, userID uint, req *UpdateP
 
 	// Check ownership
 	if process.CreatedBy != userID {
-		s.logger.Warn("User attempted to update process they don't own", 
+		s.logger.Warn("User attempted to update process they don't own",
 			zap.Uint("process_id", processID),
 			zap.Uint("user_id", userID),
 			zap.Uint("owner_id", process.CreatedBy),
@@ -198,7 +198,7 @@ func (s *ProcessService) UpdateProcess(processID uint, userID uint, req *UpdateP
 
 // DeleteProcess deletes a process definition
 func (s *ProcessService) DeleteProcess(processID uint, userID uint) error {
-	s.logger.Info("Deleting process definition", 
+	s.logger.Info("Deleting process definition",
 		zap.Uint("process_id", processID),
 		zap.Uint("user_id", userID),
 	)
@@ -211,7 +211,7 @@ func (s *ProcessService) DeleteProcess(processID uint, userID uint) error {
 
 	// Check ownership
 	if process.CreatedBy != userID {
-		s.logger.Warn("User attempted to delete process they don't own", 
+		s.logger.Warn("User attempted to delete process they don't own",
 			zap.Uint("process_id", processID),
 			zap.Uint("user_id", userID),
 			zap.Uint("owner_id", process.CreatedBy),
@@ -297,7 +297,7 @@ func (s *ProcessService) GetProcesses(page, pageSize int, filters map[string]int
 
 // CopyProcess creates a copy of an existing process
 func (s *ProcessService) CopyProcess(processID uint, userID uint) (*ProcessResponse, error) {
-	s.logger.Info("Copying process definition", 
+	s.logger.Info("Copying process definition",
 		zap.Uint("process_id", processID),
 		zap.Uint("user_id", userID),
 	)
@@ -329,7 +329,7 @@ func (s *ProcessService) CopyProcess(processID uint, userID uint) (*ProcessRespo
 
 // PublishProcess publishes a process definition
 func (s *ProcessService) PublishProcess(processID uint, userID uint) error {
-	s.logger.Info("Publishing process definition", 
+	s.logger.Info("Publishing process definition",
 		zap.Uint("process_id", processID),
 		zap.Uint("user_id", userID),
 	)

@@ -99,7 +99,7 @@ func (r *Router) SetupRoutes(e *echo.Echo) {
 
 	// API documentation route (development only)
 	// TODO: Add Swagger documentation endpoint
-	
+
 	r.logger.Info("Routes configured successfully")
 }
 

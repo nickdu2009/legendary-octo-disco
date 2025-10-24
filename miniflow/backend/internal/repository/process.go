@@ -31,7 +31,7 @@ func (r *ProcessRepository) Create(process *model.ProcessDefinition) error {
 	// Check if key already exists
 	var count int64
 	if err := r.db.Model(&model.ProcessDefinition{}).
-		Where("process_process_key = ?", process.ProcessKey).
+		Where("`key` = ?", process.Key).
 		Count(&count).Error; err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (r *ProcessRepository) Create(process *model.ProcessDefinition) error {
 		// Get the latest version for this key
 		var latestVersion int
 		if err := r.db.Model(&model.ProcessDefinition{}).
-			Where("process_process_key = ?", process.ProcessKey).
+			Where("`key` = ?", process.Key).
 			Select("COALESCE(MAX(version), 0)").
 			Scan(&latestVersion).Error; err != nil {
 			return err

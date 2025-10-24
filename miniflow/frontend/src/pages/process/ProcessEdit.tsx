@@ -26,7 +26,7 @@ import {
   ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Node, Edge } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 
 // Import components
 import ProcessDesigner from '../../components/process/ProcessDesigner';
@@ -38,7 +38,7 @@ import { processApi } from '../../services/processApi';
 import { ProcessConverter } from '../../utils/processConverter';
 
 // Import types
-import { 
+import type { 
   ProcessDefinition, 
   CreateProcessRequest, 
   UpdateProcessRequest,

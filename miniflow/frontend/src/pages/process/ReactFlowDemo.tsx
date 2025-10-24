@@ -1,7 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import ReactFlow, {
-  Node,
-  Edge,
   addEdge,
   Background,
   Controls,
@@ -9,6 +7,7 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
 } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 import { Card, Button, Space, message } from 'antd';
 import { PlusOutlined, SaveOutlined } from '@ant-design/icons';
 

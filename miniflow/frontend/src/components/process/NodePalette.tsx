@@ -7,7 +7,7 @@ import {
   BranchesOutlined,
   ApiOutlined
 } from '@ant-design/icons';
-import { NodeTypeConfig } from '../../types/process';
+import type { NodeTypeConfig } from '../../types/process';
 
 interface NodePaletteProps {
   onAddNode: (nodeType: string, position?: { x: number; y: number }) => void;

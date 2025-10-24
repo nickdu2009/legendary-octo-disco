@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Card, Form, Input, Select, Button, Space, Divider, Switch } from 'antd';
 import { DeleteOutlined, EditOutlined, SaveOutlined } from '@ant-design/icons';
-import { ProcessNode, ProcessEdge } from '../../types/process';
+import type { ProcessNode, ProcessEdge } from '../../types/process';
 
 interface NodePropertiesPanelProps {
   selectedNode: ProcessNode | null;

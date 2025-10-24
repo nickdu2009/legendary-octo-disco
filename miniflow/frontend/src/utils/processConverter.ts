@@ -3,8 +3,8 @@
  * 用于ReactFlow格式与后端API格式之间的转换
  */
 
-import { Node, Edge } from 'reactflow';
-import { 
+import type { Node, Edge } from 'reactflow';
+import type { 
   ProcessNode, 
   ProcessEdge, 
   BackendProcessNode, 

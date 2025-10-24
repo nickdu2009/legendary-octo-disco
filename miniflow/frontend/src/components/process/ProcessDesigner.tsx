@@ -6,15 +6,15 @@ import ReactFlow, {
   MiniMap,
   useNodesState,
   useEdgesState,
-  Connection,
-  Edge,
-  Node,
-  NodeTypes,
-  OnNodesChange,
-  OnEdgesChange,
-  OnConnect,
   ReactFlowProvider,
-  ReactFlowInstance,
+  type Connection,
+  type Edge,
+  type Node,
+  type NodeTypes,
+  type OnNodesChange,
+  type OnEdgesChange,
+  type OnConnect,
+  type ReactFlowInstance,
 } from 'reactflow';
 import { message } from 'antd';
 
@@ -31,7 +31,7 @@ import GatewayNode from './nodes/GatewayNode';
 
 // Import utilities
 import { ProcessConverter } from '../../utils/processConverter';
-import { BackendProcessDefinitionData, ProcessNode, ProcessEdge } from '../../types/process';
+import type { BackendProcessDefinitionData } from '../../types/process';
 
 // Define node types
 const nodeTypes: NodeTypes = {

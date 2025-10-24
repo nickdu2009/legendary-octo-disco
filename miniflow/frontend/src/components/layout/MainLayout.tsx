@@ -23,6 +23,9 @@ import {
   TeamOutlined,
   BarChartOutlined,
   BellOutlined,
+  MonitorOutlined,
+  CheckCircleOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth, useAuthActions, useUserInfo } from '../../store/userStore';
@@ -80,6 +83,67 @@ const MainLayout: React.FC = () => {
           },
         ],
       },
+      {
+        key: '/system',
+        icon: <MonitorOutlined />,
+        label: '系统监控',
+        children: [
+          {
+            key: '/system/integration',
+            icon: <CheckCircleOutlined />,
+            label: '集成测试',
+          },
+          {
+            key: '/system/performance',
+            icon: <DashboardOutlined />,
+            label: '性能监控',
+          },
+          {
+            key: '/system/e2e',
+            icon: <ExperimentOutlined />,
+            label: '端到端测试',
+          },
+        ],
+      },
+    ] : []),
+    
+    // Development menu items (only in development environment)
+    ...(process.env.NODE_ENV === 'development' ? [
+      {
+        type: 'divider' as const,
+      },
+      {
+        key: '/dev',
+        icon: <ExperimentOutlined />,
+        label: '开发工具',
+        children: [
+          {
+            key: '/dev/basic',
+            icon: <ApartmentOutlined />,
+            label: '基础演示',
+          },
+          {
+            key: '/dev/enhanced',
+            icon: <DashboardOutlined />,
+            label: '增强演示',
+          },
+          {
+            key: '/dev/demo',
+            icon: <CheckCircleOutlined />,
+            label: 'ReactFlow演示',
+          },
+          {
+            key: '/dev/day3',
+            icon: <SettingOutlined />,
+            label: 'Day3功能测试',
+          },
+          {
+            key: '/dev/day4',
+            icon: <MonitorOutlined />,
+            label: 'Day4 API测试',
+          },
+        ],
+      },
     ] : []),
   ];
 
@@ -127,6 +191,14 @@ const MainLayout: React.FC = () => {
       '/settings': '设置',
       '/admin/users': '用户管理',
       '/admin/stats': '统计分析',
+      '/system/integration': '系统集成测试',
+      '/system/performance': '性能监控',
+      '/system/e2e': '端到端测试',
+      '/dev/basic': '基础演示',
+      '/dev/enhanced': '增强演示',
+      '/dev/demo': 'ReactFlow演示',
+      '/dev/day3': 'Day3功能测试',
+      '/dev/day4': 'Day4 API测试',
     };
     return pathTitleMap[location.pathname] || 'MiniFlow';
   };

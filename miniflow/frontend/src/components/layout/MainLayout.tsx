@@ -83,6 +83,13 @@ const MainLayout: React.FC = () => {
           },
         ],
       },
+    ] : []),
+
+    // System monitoring menu (admin or development environment)
+    ...((isAdmin() || process.env.NODE_ENV === 'development') ? [
+      {
+        type: 'divider' as const,
+      },
       {
         key: '/system',
         icon: <MonitorOutlined />,

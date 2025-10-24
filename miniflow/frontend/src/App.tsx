@@ -10,16 +10,18 @@ import Dashboard from './pages/dashboard/Dashboard';
 import ProcessList from './pages/process/ProcessList';
 import ProcessEdit from './pages/process/ProcessEdit';
 import ProcessTest from './pages/process/ProcessTest';
-import ReactFlowDemo from './pages/process/ReactFlowDemo';
-import BasicProcessDemo from './pages/process/BasicProcessDemo';
-import EnhancedProcessDemo from './pages/process/EnhancedProcessDemo';
 import ProductionProcessEditor from './pages/process/ProductionProcessEditor';
-import Day3FeatureTest from './pages/process/Day3FeatureTest';
 import EnhancedProcessList from './pages/process/EnhancedProcessList';
-import Day4Test from './pages/process/Day4Test';
-import SystemIntegrationTest from './pages/process/SystemIntegrationTest';
-import PerformanceMonitor from './pages/process/PerformanceMonitor';
-import EndToEndTest from './pages/process/EndToEndTest';
+
+// Development and testing pages
+import ReactFlowDemo from './pages/dev/ReactFlowDemo';
+import BasicProcessDemo from './pages/dev/BasicProcessDemo';
+import EnhancedProcessDemo from './pages/dev/EnhancedProcessDemo';
+import Day3FeatureTest from './pages/dev/Day3FeatureTest';
+import Day4Test from './pages/dev/Day4Test';
+import SystemIntegrationTest from './pages/system/SystemIntegrationTest';
+import PerformanceMonitor from './pages/system/PerformanceMonitor';
+import EndToEndTest from './pages/system/EndToEndTest';
 
 // Components
 import MainLayout from './components/layout/MainLayout';
@@ -81,22 +83,25 @@ function App() {
               } 
             />
             
-            {/* Process routes */}
+            {/* Business process routes */}
             <Route path="process" element={<EnhancedProcessList />} />
-            <Route path="process/basic" element={<BasicProcessDemo />} />
-            <Route path="process/enhanced" element={<EnhancedProcessDemo />} />
-            <Route path="process/demo" element={<ReactFlowDemo />} />
+            <Route path="process/create" element={<ProductionProcessEditor />} />
+            <Route path="process/:id/edit" element={<ProductionProcessEditor />} />
+            <Route path="process/:id/view" element={<ProductionProcessEditor />} />
+            <Route path="process/production" element={<ProductionProcessEditor />} />
             <Route path="process/test" element={<ProcessTest />} />
-            <Route path="process/day3" element={<Day3FeatureTest />} />
-            <Route path="process/day4" element={<Day4Test />} />
+
+            {/* Development and demo routes */}
+            <Route path="dev/basic" element={<BasicProcessDemo />} />
+            <Route path="dev/enhanced" element={<EnhancedProcessDemo />} />
+            <Route path="dev/demo" element={<ReactFlowDemo />} />
+            <Route path="dev/day3" element={<Day3FeatureTest />} />
+            <Route path="dev/day4" element={<Day4Test />} />
+
             {/* System testing and monitoring routes */}
             <Route path="system/integration" element={<SystemIntegrationTest />} />
             <Route path="system/performance" element={<PerformanceMonitor />} />
             <Route path="system/e2e" element={<EndToEndTest />} />
-            <Route path="process/production" element={<ProductionProcessEditor />} />
-            <Route path="process/create" element={<ProductionProcessEditor />} />
-            <Route path="process/:id/edit" element={<ProductionProcessEditor />} />
-            <Route path="process/:id/view" element={<ProductionProcessEditor />} />
 
             {/* Admin routes */}
             <Route 

@@ -139,7 +139,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Statistics Cards - 紧凑布局 */}
-      <Row gutter={[8, 8]} className="stats-section">
+      <Row gutter={[12, 8]} className="stats-section">
         <Col xs={12} sm={12} lg={6}>
           <Card hoverable size="small">
             <Statistic
@@ -188,22 +188,12 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      <Row gutter={[8, 8]} className="content-section">
+      <Row gutter={[12, 8]} className="content-section">
         {/* Recent Processes */}
         <Col xs={24} lg={16}>
           <Card 
             title="最近的流程" 
             size="small"
-            extra={
-              <Button 
-                type="primary" 
-                size="small"
-                icon={<PlusOutlined />}
-                onClick={() => navigate('/process/create')}
-              >
-                创建流程
-              </Button>
-            }
           >
             <Space direction="vertical" style={{ width: '100%' }}>
               {mockRecentProcesses.map(process => (

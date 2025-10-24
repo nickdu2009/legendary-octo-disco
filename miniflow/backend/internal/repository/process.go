@@ -31,16 +31,16 @@ func (r *ProcessRepository) Create(process *model.ProcessDefinition) error {
 	// Check if key already exists
 	var count int64
 	if err := r.db.Model(&model.ProcessDefinition{}).
-		Where("process_process_key = ?", process.Key).
+		Where("process_`key` = ?", process.Key).
 		Count(&count).Error; err != nil {
 		return err
 	}
-	
+
 	if count > 0 {
 		// Get the latest version for this key
 		var latestVersion int
 		if err := r.db.Model(&model.ProcessDefinition{}).
-			Where("process_process_key = ?", process.Key).
+			Where("process_`key` = ?", process.Key).
 			Select("COALESCE(MAX(version), 0)").
 			Scan(&latestVersion).Error; err != nil {
 			return err
@@ -71,7 +71,7 @@ func (r *ProcessRepository) GetByID(id uint) (*model.ProcessDefinition, error) {
 func (r *ProcessRepository) GetByKey(key string) (*model.ProcessDefinition, error) {
 	var process model.ProcessDefinition
 	err := r.db.Preload("Creator").
-		Where("process_key = ?", key).
+		Where("`key` = ?", key).
 		Order("version DESC").
 		First(&process).Error
 	if err != nil {
@@ -87,7 +87,7 @@ func (r *ProcessRepository) GetByKey(key string) (*model.ProcessDefinition, erro
 func (r *ProcessRepository) GetByKeyAndVersion(key string, version int) (*model.ProcessDefinition, error) {
 	var process model.ProcessDefinition
 	err := r.db.Preload("Creator").
-		Where("process_key = ? AND version = ?", key, version).
+		Where("`key` = ? AND version = ?", key, version).
 		First(&process).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -127,7 +127,7 @@ func (r *ProcessRepository) List(offset, limit int, filters map[string]interface
 	}
 	if search, ok := filters["search"]; ok && search != "" {
 		searchTerm := fmt.Sprintf("%%%s%%", strings.ToLower(search.(string)))
-		query = query.Where("LOWER(name) LIKE ? OR LOWER(key) LIKE ? OR LOWER(description) LIKE ?", 
+		query = query.Where("LOWER(name) LIKE ? OR LOWER(key) LIKE ? OR LOWER(description) LIKE ?",
 			searchTerm, searchTerm, searchTerm)
 	}
 
@@ -152,7 +152,7 @@ func (r *ProcessRepository) List(offset, limit int, filters map[string]interface
 func (r *ProcessRepository) GetLatestVersion(key string) (*model.ProcessDefinition, error) {
 	var process model.ProcessDefinition
 	err := r.db.Preload("Creator").
-		Where("process_key = ?", key).
+		Where("`key` = ?", key).
 		Order("version DESC").
 		First(&process).Error
 	if err != nil {
@@ -168,7 +168,7 @@ func (r *ProcessRepository) GetLatestVersion(key string) (*model.ProcessDefiniti
 func (r *ProcessRepository) GetVersions(key string) ([]*model.ProcessDefinition, error) {
 	var processes []*model.ProcessDefinition
 	err := r.db.Preload("Creator").
-		Where("process_key = ?", key).
+		Where("`key` = ?", key).
 		Order("version DESC").
 		Find(&processes).Error
 	return processes, err
@@ -198,9 +198,9 @@ func (r *ProcessRepository) GetByCreator(createdBy uint) ([]*model.ProcessDefini
 func (r *ProcessRepository) Search(keyword string) ([]*model.ProcessDefinition, error) {
 	var processes []*model.ProcessDefinition
 	searchTerm := fmt.Sprintf("%%%s%%", strings.ToLower(keyword))
-	
+
 	err := r.db.Preload("Creator").
-		Where("LOWER(name) LIKE ? OR LOWER(key) LIKE ? OR LOWER(description) LIKE ?", 
+		Where("LOWER(name) LIKE ? OR LOWER(key) LIKE ? OR LOWER(description) LIKE ?",
 			searchTerm, searchTerm, searchTerm).
 		Order("updated_at DESC").
 		Find(&processes).Error
@@ -211,7 +211,7 @@ func (r *ProcessRepository) Search(keyword string) ([]*model.ProcessDefinition, 
 func (r *ProcessRepository) ExistsByKey(key string) (bool, error) {
 	var count int64
 	err := r.db.Model(&model.ProcessDefinition{}).
-		Where("process_key = ?", key).
+		Where("`key` = ?", key).
 		Count(&count).Error
 	return count > 0, err
 }
@@ -220,7 +220,7 @@ func (r *ProcessRepository) ExistsByKey(key string) (bool, error) {
 func (r *ProcessRepository) GetMaxVersion(key string) (int, error) {
 	var maxVersion int
 	err := r.db.Model(&model.ProcessDefinition{}).
-		Where("process_key = ?", key).
+		Where("`key` = ?", key).
 		Select("COALESCE(MAX(version), 0)").
 		Scan(&maxVersion).Error
 	return maxVersion, err

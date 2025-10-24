@@ -99,7 +99,7 @@ func (s *ProcessService) CreateProcess(userID uint, req *CreateProcessRequest) (
 
 	// Create process definition
 	process := &model.ProcessDefinition{
-		ProcessKey:  req.Key,
+		Key:         req.Key,
 		Name:        req.Name,
 		Description: req.Description,
 		Category:    req.Category,
@@ -468,7 +468,7 @@ func (s *ProcessService) toProcessResponse(process *model.ProcessDefinition) *Pr
 
 	return &ProcessResponse{
 		ID:          process.ID,
-		Key:         process.ProcessKey,
+		Key:         process.Key,
 		Name:        process.Name,
 		Version:     process.Version,
 		Description: process.Description,

@@ -60,15 +60,6 @@ function App() {
             
             {/* Placeholder pages for future development */}
             <Route 
-              path="process" 
-              element={
-                <div style={{ padding: 24, textAlign: 'center' }}>
-                  <h2>流程管理</h2>
-                  <p>流程管理功能将在后续版本中实现</p>
-                </div>
-              } 
-            />
-            <Route 
               path="tasks" 
               element={
                 <div style={{ padding: 24, textAlign: 'center' }}>

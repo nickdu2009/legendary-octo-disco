@@ -1,6 +1,16 @@
 /* 彻底重置所有默认样式 */
-* {
+*, *::before, *::after {
   box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* 覆盖Ant Design的默认样式 */
+.ant-layout,
+.ant-layout-sider,
+.ant-layout-content,
+.ant-layout-header,
+.ant-layout-footer {
   margin: 0 !important;
   padding: 0 !important;
 }
@@ -53,6 +63,7 @@ body {
   right: 0 !important;
   bottom: 0 !important;
   z-index: 1 !important;
+  border: 3px solid red !important; /* 临时调试边框 */
 }
 
 .main-layout.ant-layout {

@@ -210,7 +210,7 @@ const Dashboard: React.FC = () => {
 
       <Row gutter={[12, 12]} className="content-section">
         {/* Recent Processes */}
-        <Col xs={24} lg={isAdmin() ? 16 : 18}>
+        <Col xs={24} lg={isAdmin() ? 16 : 24}>
           <Card 
             title="最近的流程" 
             extra={
@@ -266,6 +266,34 @@ const Dashboard: React.FC = () => {
                   >
                     创建第一个流程
                   </Button>
+                </div>
+              )}
+              
+              {/* 快速操作区域 - 普通用户 */}
+              {!isAdmin() && (
+                <div style={{ marginTop: 16, borderTop: '1px solid #f0f0f0', paddingTop: 16 }}>
+                  <Text strong style={{ marginBottom: 12, display: 'block' }}>快速操作</Text>
+                  <Space wrap>
+                    <Button 
+                      type="primary" 
+                      icon={<PlusOutlined />}
+                      onClick={() => navigate('/process/create')}
+                    >
+                      创建新流程
+                    </Button>
+                    <Button 
+                      icon={<CheckSquareOutlined />}
+                      onClick={() => navigate('/tasks')}
+                    >
+                      处理待办任务
+                    </Button>
+                    <Button 
+                      icon={<ApartmentOutlined />}
+                      onClick={() => navigate('/process')}
+                    >
+                      查看我的流程
+                    </Button>
+                  </Space>
                 </div>
               )}
             </Space>
@@ -326,37 +354,6 @@ const Dashboard: React.FC = () => {
           </Col>
         )}
 
-        {/* Regular User Quick Actions */}
-        {!isAdmin() && (
-          <Col xs={24} lg={6}>
-            <Card title="快速操作">
-              <Space direction="vertical" style={{ width: '100%' }}>
-                <Button 
-                  type="primary" 
-                  block 
-                  icon={<PlusOutlined />}
-                  onClick={() => navigate('/process/create')}
-                >
-                  创建新流程
-                </Button>
-                <Button 
-                  block 
-                  icon={<CheckSquareOutlined />}
-                  onClick={() => navigate('/tasks')}
-                >
-                  处理待办任务
-                </Button>
-                <Button 
-                  block 
-                  icon={<ApartmentOutlined />}
-                  onClick={() => navigate('/process')}
-                >
-                  查看我的流程
-                </Button>
-              </Space>
-            </Card>
-          </Col>
-        )}
       </Row>
     </div>
   );

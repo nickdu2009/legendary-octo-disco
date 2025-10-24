@@ -1,12 +1,20 @@
 /* Authentication Pages Styles */
 
 .auth-container {
-  min-height: 100vh;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
   overflow: hidden;
+  z-index: 1000;
 }
 
 .auth-background {
@@ -16,9 +24,9 @@
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, 
-    #667eea 0%, 
-    #764ba2 50%, 
-    #f093fb 100%
+    #001529 0%,   /* 与侧边栏颜色一致 */
+    #1890ff 50%, /* 主题蓝色 */
+    #40a9ff 100%  /* 浅蓝色 */
   );
   z-index: 1;
 }
@@ -29,8 +37,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(1px);
+  background: rgba(0, 21, 41, 0.1); /* 与主题色协调的遮罩 */
+  backdrop-filter: blur(2px);
 }
 
 .auth-content {
@@ -42,11 +50,13 @@
 }
 
 .auth-card {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 21, 41, 0.15);
+  border-radius: 12px;
   backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
-  padding: 24px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 32px;
+  max-width: 420px;
 }
 
 .auth-card-wide {
@@ -91,16 +101,16 @@
 
 .auth-submit-btn {
   height: 44px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 500;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1890ff; /* 与主应用主题色一致 */
   border: none;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
 }
 
 .auth-submit-btn:hover {
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  background: #40a9ff; /* 悬停时的浅蓝色 */
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
   transform: translateY(-1px);
 }
 
@@ -116,12 +126,12 @@
 }
 
 .auth-link {
-  color: #667eea;
+  color: #1890ff; /* 与主应用主题色一致 */
   font-weight: 500;
 }
 
 .auth-link:hover {
-  color: #5a6fd8;
+  color: #40a9ff; /* 悬停时的浅蓝色 */
 }
 
 .auth-loading {

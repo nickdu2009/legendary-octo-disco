@@ -19,11 +19,13 @@ body, html {
   min-height: 100vh !important;
   height: 100vh !important;
   width: 100vw !important;
+  overflow: hidden !important;
 }
 
 .main-layout.ant-layout {
   display: flex !important;
   flex-direction: row !important;
+  width: 100% !important;
 }
 
 /* Force Ant Design Layout to use flexbox */
@@ -33,12 +35,24 @@ body, html {
 
 .ant-layout-sider {
   flex: 0 0 auto !important;
+  z-index: 10 !important;
 }
 
 .ant-layout.main-content-layout {
   flex: 1 1 auto !important;
-  width: 0 !important; /* 让flex正确计算宽度 */
-  min-width: 300px !important;
+  min-width: 0 !important; /* 让flex正确收缩 */
+  overflow: hidden !important;
+}
+
+/* 侧边栏展开时的主内容宽度 */
+.main-layout:not(.ant-layout-sider-collapsed) .main-content-layout {
+  width: calc(100vw - 240px) !important;
+}
+
+/* 侧边栏折叠时的主内容宽度 */
+.main-layout.ant-layout-sider-collapsed .main-content-layout,
+.ant-layout-sider-collapsed ~ .main-content-layout {
+  width: calc(100vw - 80px) !important;
 }
 
 /* Sidebar Styles */
@@ -133,8 +147,8 @@ body, html {
   flex: 0 0 auto !important;
   height: 64px !important;
   width: 100% !important;
-  position: relative !important;
-  z-index: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
 }
 
 .header-left {
@@ -201,7 +215,7 @@ body, html {
   flex-direction: column !important;
   height: 100vh !important;
   min-width: 0 !important;
-  background: #f0f0f0 !important;
+  width: 100% !important;
 }
 
 /* Content Styles */
@@ -212,13 +226,14 @@ body, html {
   overflow-y: auto !important;
   overflow-x: hidden !important;
   min-height: 0 !important;
+  width: 100% !important;
 }
 
 .content-wrapper {
   padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+  max-width: none !important; /* 移除最大宽度限制 */
+  margin: 0 !important;
+  width: 100% !important;
 }
 
 /* Footer Styles */

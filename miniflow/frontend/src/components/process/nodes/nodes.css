@@ -1,0 +1,286 @@
+/* 流程节点通用样式 */
+.custom-node {
+  background: #ffffff;
+  border: 2px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 8px 12px;
+  min-width: 100px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.custom-node.selected {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.custom-node:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 节点头部 */
+.node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.node-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.node-label {
+  color: #262626;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+/* 节点内容 */
+.node-content {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #595959;
+}
+
+.node-description {
+  margin-top: 4px;
+  font-size: 10px;
+  color: #8c8c8c;
+  max-width: 120px;
+  word-break: break-word;
+}
+
+/* 开始节点 */
+.start-node {
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  border-color: #52c41a;
+  color: white;
+}
+
+.start-node .node-icon {
+  color: white;
+}
+
+.start-node .node-label {
+  color: white;
+}
+
+/* 结束节点 */
+.end-node {
+  background: linear-gradient(135deg, #f5222d 0%, #ff4d4f 100%);
+  border-color: #f5222d;
+  color: white;
+}
+
+.end-node .node-icon {
+  color: white;
+}
+
+.end-node .node-label {
+  color: white;
+}
+
+/* 用户任务节点 */
+.user-task-node {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border-color: #1890ff;
+  color: white;
+}
+
+.user-task-node .node-icon {
+  color: white;
+}
+
+.user-task-node .node-label {
+  color: white;
+}
+
+.user-task-node .node-content {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.assignee-label, .service-label {
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+.assignee-value, .service-value {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 10px;
+}
+
+/* 服务任务节点 */
+.service-task-node {
+  background: linear-gradient(135deg, #722ed1 0%, #9254de 100%);
+  border-color: #722ed1;
+  color: white;
+}
+
+.service-task-node .node-icon {
+  color: white;
+}
+
+.service-task-node .node-label {
+  color: white;
+}
+
+.service-task-node .node-content {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.service-type, .service-endpoint {
+  margin-bottom: 2px;
+}
+
+/* 网关节点 */
+.gateway-node {
+  background: #fa8c16;
+  border-color: #fa8c16;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.gateway-node.selected {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.gateway-shape {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 2px solid #fa8c16;
+  transform: rotate(45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.gateway-icon {
+  transform: rotate(-45deg);
+  font-size: 16px;
+  font-weight: bold;
+  color: #fa8c16;
+  line-height: 1;
+}
+
+.node-label-bottom {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #262626;
+  white-space: nowrap;
+  background: white;
+  padding: 2px 4px;
+  border-radius: 2px;
+  border: 1px solid #d9d9d9;
+}
+
+.node-condition {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: #8c8c8c;
+  white-space: nowrap;
+  background: white;
+  padding: 1px 3px;
+  border-radius: 2px;
+  border: 1px solid #d9d9d9;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 网关类型变体 */
+.gateway-node.parallel .gateway-shape {
+  border-color: #52c41a;
+}
+
+.gateway-node.parallel .gateway-icon {
+  color: #52c41a;
+}
+
+.gateway-node.inclusive .gateway-shape {
+  border-color: #1890ff;
+}
+
+.gateway-node.inclusive .gateway-icon {
+  color: #1890ff;
+}
+
+/* 连接点样式 */
+.node-handle {
+  width: 8px;
+  height: 8px;
+  border: 2px solid #1890ff;
+  background: white;
+}
+
+.node-handle-source {
+  background: #52c41a;
+  border-color: #52c41a;
+}
+
+.node-handle-target {
+  background: #f5222d;
+  border-color: #f5222d;
+}
+
+/* 连接点悬停效果 */
+.node-handle:hover {
+  width: 10px;
+  height: 10px;
+  border-width: 3px;
+}
+
+/* ReactFlow 覆盖样式 */
+.react-flow__node-start,
+.react-flow__node-end,
+.react-flow__node-userTask,
+.react-flow__node-serviceTask,
+.react-flow__node-gateway {
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+/* 连线样式 */
+.react-flow__edge-path {
+  stroke: #1890ff;
+  stroke-width: 2;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #52c41a;
+  stroke-width: 3;
+}
+
+.react-flow__edge-text {
+  font-size: 10px;
+  fill: #262626;
+  background: white;
+  padding: 2px 4px;
+  border-radius: 2px;
+}

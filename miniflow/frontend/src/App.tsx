@@ -8,7 +8,10 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/dashboard/Dashboard';
 import ProcessList from './pages/process/ProcessList';
-import ProcessDesign from './pages/process/ProcessDesign';
+import ProcessEdit from './pages/process/ProcessEdit';
+import ProcessTest from './pages/process/ProcessTest';
+import ReactFlowDemo from './pages/process/ReactFlowDemo';
+import BasicProcessDemo from './pages/process/BasicProcessDemo';
 
 // Components
 import MainLayout from './components/layout/MainLayout';
@@ -50,11 +53,16 @@ function App() {
             {/* Main pages */}
             <Route path="dashboard" element={<Dashboard />} />
             
-            {/* Process Management Routes */}
-            <Route path="process" element={<ProcessList />} />
-            <Route path="process/new" element={<ProcessDesign />} />
-            <Route path="process/:id/edit" element={<ProcessDesign />} />
-            <Route path="process/:id/view" element={<ProcessDesign />} />
+            {/* Placeholder pages for future development */}
+            <Route 
+              path="process" 
+              element={
+                <div style={{ padding: 24, textAlign: 'center' }}>
+                  <h2>流程管理</h2>
+                  <p>流程管理功能将在后续版本中实现</p>
+                </div>
+              } 
+            />
             <Route 
               path="tasks" 
               element={
@@ -74,6 +82,15 @@ function App() {
               } 
             />
             
+            {/* Process routes */}
+            <Route path="process" element={<ProcessList />} />
+            <Route path="process/basic" element={<BasicProcessDemo />} />
+            <Route path="process/demo" element={<ReactFlowDemo />} />
+            <Route path="process/test" element={<ProcessTest />} />
+            <Route path="process/create" element={<ProcessEdit />} />
+            <Route path="process/:id/edit" element={<ProcessEdit />} />
+            <Route path="process/:id/view" element={<ProcessEdit />} />
+
             {/* Admin routes */}
             <Route 
               path="admin/users" 

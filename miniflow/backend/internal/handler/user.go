@@ -7,9 +7,9 @@ import (
 	"miniflow/internal/middleware"
 	"miniflow/internal/service"
 	"miniflow/pkg/logger"
+	"miniflow/pkg/utils"
 
 	"github.com/labstack/echo/v4"
-	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +17,7 @@ import (
 type UserHandler struct {
 	userService *service.UserService
 	logger      *logger.Logger
-	validator   *validator.Validate
+	validator   *utils.CustomValidator
 }
 
 // NewUserHandler creates a new user handler
@@ -25,7 +25,7 @@ func NewUserHandler(userService *service.UserService, logger *logger.Logger) *Us
 	return &UserHandler{
 		userService: userService,
 		logger:      logger,
-		validator:   validator.New(),
+		validator:   utils.NewCustomValidator(),
 	}
 }
 
@@ -43,7 +43,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 	}
 
 	// Validate request data
-	if err := h.validator.Struct(&req); err != nil {
+	if err := h.validator.Validate(&req); err != nil {
 		h.logger.Warn("Registration validation failed", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "请求参数验证失败",
@@ -86,7 +86,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 	}
 
 	// Validate request data
-	if err := h.validator.Struct(&req); err != nil {
+	if err := h.validator.Validate(&req); err != nil {
 		h.logger.Warn("Login validation failed", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "请求参数验证失败",
@@ -168,7 +168,7 @@ func (h *UserHandler) UpdateProfile(c echo.Context) error {
 	}
 
 	// Validate request data
-	if err := h.validator.Struct(&req); err != nil {
+	if err := h.validator.Validate(&req); err != nil {
 		h.logger.Warn("Profile update validation failed", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "请求参数验证失败",
@@ -222,7 +222,7 @@ func (h *UserHandler) ChangePassword(c echo.Context) error {
 		})
 	}
 
-	if err := h.validator.Struct(&req); err != nil {
+	if err := h.validator.Validate(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "密码格式验证失败",
 			"code":  "VALIDATION_FAILED",

@@ -31,11 +31,11 @@ func NewUserService(userRepo *repository.UserRepository, jwtManager *utils.JWTMa
 
 // RegisterRequest represents user registration request
 type RegisterRequest struct {
-	Username    string `json:"username" validate:"required,min=3,max=50"`
-	Password    string `json:"password" validate:"required,min=6"`
+	Username    string `json:"username" validate:"required,min=3,max=50,alphanum_underscore"`
+	Password    string `json:"password" validate:"required,min=6,max=128"`
 	DisplayName string `json:"display_name"`
-	Email       string `json:"email" validate:"email"`
-	Phone       string `json:"phone"`
+	Email       string `json:"email" validate:"omitempty,email"`
+	Phone       string `json:"phone" validate:"omitempty,phone_china"`
 }
 
 // LoginRequest represents user login request

@@ -91,6 +91,6 @@ func (r *Router) healthCheck(c echo.Context) error {
 		"status":    "healthy",
 		"service":   "miniflow",
 		"version":   "1.0.0",
-		"timestamp": "2024-10-23T17:00:00Z", // TODO: Use actual timestamp
+		"timestamp": "2025-10-23T17:00:00Z", // TODO: Use actual timestamp
 	})
 }

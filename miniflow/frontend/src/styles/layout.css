@@ -18,13 +18,28 @@ body, html {
 .main-layout {
   min-height: 100vh !important;
   height: 100vh !important;
+  width: 100vw !important;
+}
+
+.main-layout.ant-layout {
   display: flex !important;
   flex-direction: row !important;
 }
 
-.main-layout .ant-layout {
-  min-height: 100vh;
-  height: 100vh;
+/* Force Ant Design Layout to use flexbox */
+.ant-layout {
+  display: flex !important;
+}
+
+.ant-layout-sider {
+  flex: 0 0 auto !important;
+}
+
+.ant-layout.main-content-layout {
+  flex: 1 1 auto !important;
+  width: 0 !important; /* 让flex正确计算宽度 */
+  background: #ff0000 !important; /* 临时红色背景用于调试 */
+  min-width: 300px !important;
 }
 
 /* Sidebar Styles */
@@ -118,6 +133,9 @@ body, html {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   flex: 0 0 auto !important;
   height: 64px !important;
+  width: 100% !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .header-left {
@@ -177,13 +195,14 @@ body, html {
   color: #6b7280;
 }
 
-/* Main content layout */
+/* Main content layout - 确保显示 */
 .main-content-layout {
   flex: 1 1 auto !important;
   display: flex !important;
   flex-direction: column !important;
   height: 100vh !important;
-  overflow: hidden !important;
+  min-width: 0 !important;
+  background: #f0f0f0 !important;
 }
 
 /* Content Styles */
@@ -193,6 +212,7 @@ body, html {
   padding: 0 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
+  min-height: 0 !important;
 }
 
 .content-wrapper {

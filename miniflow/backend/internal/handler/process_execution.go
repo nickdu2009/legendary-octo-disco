@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"miniflow/internal/engine"
-	"miniflow/internal/model"
 	"miniflow/pkg/logger"
 
 	"github.com/labstack/echo/v4"
@@ -328,11 +327,10 @@ func (h *ProcessExecutionHandler) GetInstanceHistory(c echo.Context) error {
 
 // 辅助函数：从上下文获取用户ID
 func getUserIDFromContext(c echo.Context) uint {
-	if user := c.Get("user"); user != nil {
-		if userClaims, ok := user.(*model.User); ok {
-			return userClaims.ID
+	if userID := c.Get("user_id"); userID != nil {
+		if id, ok := userID.(uint); ok {
+			return id
 		}
 	}
 	return 0
 }
-

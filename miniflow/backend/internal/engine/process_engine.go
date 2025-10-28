@@ -97,6 +97,17 @@ func (e *ProcessEngine) StartProcess(req *StartProcessRequest, starterID uint) (
 		tagsJSON = []byte("[]")
 	}
 
+	// 序列化元数据
+	metadataJSON := []byte("{}")
+	if len(req.Tags) > 0 {
+		metadata := map[string]interface{}{
+			"tags": req.Tags,
+		}
+		if metadataBytes, err := json.Marshal(metadata); err == nil {
+			metadataJSON = metadataBytes
+		}
+	}
+
 	// 创建流程实例
 	instance := &model.ProcessInstance{
 		DefinitionID:     req.DefinitionID,
@@ -111,6 +122,7 @@ func (e *ProcessEngine) StartProcess(req *StartProcessRequest, starterID uint) (
 		Priority:         req.Priority,
 		DueDate:          req.DueDate,
 		Tags:             string(tagsJSON),
+		Metadata:         string(metadataJSON),
 		ExecutionPath:    fmt.Sprintf(`[{"node":"%s","timestamp":"%s"}]`, startNode.ID, time.Now().Format(time.RFC3339)),
 		ExpectedDuration: e.estimateProcessDuration(definitionData),
 	}

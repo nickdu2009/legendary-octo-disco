@@ -95,24 +95,24 @@ type ProcessInstance struct {
 	StarterID    uint       `gorm:"not null;index;constraint:OnDelete:RESTRICT" json:"starter_id"`
 
 	// 执行引擎扩展字段
-	ExecutionPath    string     `gorm:"type:json" json:"execution_path"`        // 执行路径记录
+	ExecutionPath    string     `gorm:"type:json" json:"execution_path"`         // 执行路径记录
 	SuspendReason    string     `gorm:"type:varchar(255)" json:"suspend_reason"` // 暂停原因
 	Priority         int        `gorm:"default:50;index" json:"priority"`        // 流程优先级
-	DueDate          *time.Time `gorm:"index" json:"due_date"`                  // 预期完成时间
-	ActualDuration   int        `gorm:"default:0" json:"actual_duration"`       // 实际执行时间(秒)
-	ExpectedDuration int        `gorm:"default:0" json:"expected_duration"`     // 预期执行时间(秒)
-	
+	DueDate          *time.Time `gorm:"index" json:"due_date"`                   // 预期完成时间
+	ActualDuration   int        `gorm:"default:0" json:"actual_duration"`        // 实际执行时间(秒)
+	ExpectedDuration int        `gorm:"default:0" json:"expected_duration"`      // 预期执行时间(秒)
+
 	// 监控和统计字段
-	TaskCount      int `gorm:"default:0" json:"task_count"`        // 任务总数
-	CompletedTasks int `gorm:"default:0" json:"completed_tasks"`   // 已完成任务数
-	FailedTasks    int `gorm:"default:0" json:"failed_tasks"`      // 失败任务数
-	ActiveTasks    int `gorm:"default:0" json:"active_tasks"`      // 活跃任务数
-	
+	TaskCount      int `gorm:"default:0" json:"task_count"`      // 任务总数
+	CompletedTasks int `gorm:"default:0" json:"completed_tasks"` // 已完成任务数
+	FailedTasks    int `gorm:"default:0" json:"failed_tasks"`    // 失败任务数
+	ActiveTasks    int `gorm:"default:0" json:"active_tasks"`    // 活跃任务数
+
 	// 扩展信息
-	Title       string `gorm:"type:varchar(255)" json:"title"`       // 实例标题
-	Description string `gorm:"type:text" json:"description"`         // 实例描述
-	Tags        string `gorm:"type:json" json:"tags"`                // 标签
-	Metadata    string `gorm:"type:json" json:"metadata"`            // 元数据
+	Title       string `gorm:"type:varchar(255)" json:"title"` // 实例标题
+	Description string `gorm:"type:text" json:"description"`   // 实例描述
+	Tags        string `gorm:"type:json" json:"tags"`          // 标签
+	Metadata    string `gorm:"type:json" json:"metadata"`      // 元数据
 
 	// 关联关系
 	Definition ProcessDefinition `gorm:"foreignKey:DefinitionID" json:"definition,omitempty"`
@@ -141,37 +141,37 @@ type TaskInstance struct {
 	FormData     string     `gorm:"type:json" json:"form_data"`
 
 	// 任务执行扩展字段
-	TaskType        string     `gorm:"type:varchar(50);not null;default:userTask;index" json:"task_type"`  // 任务类型
-	ExecutionData   string     `gorm:"type:json" json:"execution_data"`                                    // 执行数据
-	RetryCount      int        `gorm:"default:0" json:"retry_count"`                                       // 重试次数
-	MaxRetries      int        `gorm:"default:3" json:"max_retries"`                                       // 最大重试次数
-	ErrorMessage    string     `gorm:"type:text" json:"error_message"`                                     // 错误信息
-	
+	TaskType      string `gorm:"type:varchar(50);not null;default:userTask;index" json:"task_type"` // 任务类型
+	ExecutionData string `gorm:"type:json" json:"execution_data"`                                   // 执行数据
+	RetryCount    int    `gorm:"default:0" json:"retry_count"`                                      // 重试次数
+	MaxRetries    int    `gorm:"default:3" json:"max_retries"`                                      // 最大重试次数
+	ErrorMessage  string `gorm:"type:text" json:"error_message"`                                    // 错误信息
+
 	// 时间跟踪字段
-	EstimatedDuration int        `gorm:"default:0" json:"estimated_duration"`   // 预估执行时间(秒)
-	ActualDuration    int        `gorm:"default:0" json:"actual_duration"`      // 实际执行时间(秒)
-	StartTime         *time.Time `json:"start_time"`                            // 任务开始时间
-	
+	EstimatedDuration int        `gorm:"default:0" json:"estimated_duration"` // 预估执行时间(秒)
+	ActualDuration    int        `gorm:"default:0" json:"actual_duration"`    // 实际执行时间(秒)
+	StartTime         *time.Time `json:"start_time"`                          // 任务开始时间
+
 	// 任务配置字段
-	AutoAssign        bool   `gorm:"default:false" json:"auto_assign"`          // 是否自动分配
-	RequiresApproval  bool   `gorm:"default:false" json:"requires_approval"`    // 是否需要审批
-	NotificationSent  bool   `gorm:"default:false" json:"notification_sent"`   // 是否已发送通知
-	EscalationLevel   int    `gorm:"default:0" json:"escalation_level"`         // 升级级别
-	
+	AutoAssign       bool `gorm:"default:false" json:"auto_assign"`       // 是否自动分配
+	RequiresApproval bool `gorm:"default:false" json:"requires_approval"` // 是否需要审批
+	NotificationSent bool `gorm:"default:false" json:"notification_sent"` // 是否已发送通知
+	EscalationLevel  int  `gorm:"default:0" json:"escalation_level"`      // 升级级别
+
 	// 表单和数据字段
-	FormDefinition string `gorm:"type:json" json:"form_definition"`   // 表单定义
-	OutputData     string `gorm:"type:json" json:"output_data"`       // 输出数据
-	
+	FormDefinition string `gorm:"type:json" json:"form_definition"` // 表单定义
+	OutputData     string `gorm:"type:json" json:"output_data"`     // 输出数据
+
 	// 审计字段
-	ClaimedBy     *uint      `gorm:"constraint:OnDelete:SET NULL" json:"claimed_by"`     // 认领人
-	CompletedBy   *uint      `gorm:"constraint:OnDelete:SET NULL" json:"completed_by"`   // 完成人
-	LastModified  time.Time  `gorm:"autoUpdateTime" json:"last_modified"`               // 最后修改时间
+	ClaimedBy    *uint     `gorm:"constraint:OnDelete:SET NULL" json:"claimed_by"`   // 认领人
+	CompletedBy  *uint     `gorm:"constraint:OnDelete:SET NULL" json:"completed_by"` // 完成人
+	LastModified time.Time `gorm:"autoUpdateTime" json:"last_modified"`              // 最后修改时间
 
 	// 关联关系
-	Instance    ProcessInstance `gorm:"foreignKey:InstanceID" json:"instance,omitempty"`
-	Assignee    *User           `gorm:"foreignKey:AssigneeID" json:"assignee,omitempty"`
-	ClaimedUser *User           `gorm:"foreignKey:ClaimedBy" json:"claimed_user,omitempty"`
-	CompletedUser *User         `gorm:"foreignKey:CompletedBy" json:"completed_user,omitempty"`
+	Instance      ProcessInstance `gorm:"foreignKey:InstanceID" json:"instance,omitempty"`
+	Assignee      *User           `gorm:"foreignKey:AssigneeID" json:"assignee,omitempty"`
+	ClaimedUser   *User           `gorm:"foreignKey:ClaimedBy" json:"claimed_user,omitempty"`
+	CompletedUser *User           `gorm:"foreignKey:CompletedBy" json:"completed_user,omitempty"`
 }
 
 // TableName returns the table name for TaskInstance model

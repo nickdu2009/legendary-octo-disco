@@ -32,7 +32,7 @@ import {
   QuestionCircleOutlined,
   UploadOutlined
 } from '@ant-design/icons';
-import { UploadFile } from 'antd/es/upload/interface';
+import type { UploadFile } from 'antd/es/upload/interface';
 import dayjs, { Dayjs } from 'dayjs';
 
 const { TextArea } = Input;

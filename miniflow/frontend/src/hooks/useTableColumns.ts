@@ -5,7 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { Tag, Button, Space, Tooltip } from 'antd';
-import { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from 'antd/es/table';
 import {
   EyeOutlined,
   UserOutlined,

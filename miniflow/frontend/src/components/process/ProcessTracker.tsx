@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ReactFlow, {
-  Node,
-  Edge,
   Background,
   Controls,
   MiniMap,
   useNodesState,
   useEdgesState,
-  NodeTypes,
-  Position,
   MarkerType
 } from 'reactflow';
+import type { Node, Edge, NodeTypes } from 'reactflow';
 import {
   Card,
   Tag,

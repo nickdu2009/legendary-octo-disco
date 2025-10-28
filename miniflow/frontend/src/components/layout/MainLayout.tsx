@@ -26,6 +26,7 @@ import {
   MonitorOutlined,
   CheckCircleOutlined,
   ExperimentOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth, useAuthActions, useUserInfo } from '../../store/userStore';

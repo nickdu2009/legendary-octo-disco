@@ -3,6 +3,8 @@
  * 优化API调用和数据缓存
  */
 
+import { useState, useEffect } from 'react';
+
 // 缓存项接口
 interface CacheItem<T> {
   data: T;

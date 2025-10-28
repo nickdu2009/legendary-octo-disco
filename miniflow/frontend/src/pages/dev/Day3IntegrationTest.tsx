@@ -23,6 +23,9 @@ import {
   FormOutlined,
   ApartmentOutlined
 } from '@ant-design/icons';
+import { processApi } from '../../services/processApi';
+import { instanceApi } from '../../services/instanceApi';
+import { taskApi } from '../../services/taskApi';
 
 // 导入新开发的组件
 import TaskWorkspace from '../tasks/TaskWorkspace';
@@ -74,7 +77,6 @@ const Day3IntegrationTest: React.FC = () => {
   const createTestProcess = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
       const processData = {
         key: `day3_test_${Date.now()}`,
@@ -152,24 +154,10 @@ const Day3IntegrationTest: React.FC = () => {
         }
       };
 
-      const response = await fetch('/api/v1/process', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(processData)
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setTestProcessId(result.data.id);
-        message.success('测试流程创建成功');
-        return true;
-      } else {
-        message.error('创建测试流程失败');
-        return false;
-      }
+      const result = await processApi.createProcess(processData);
+      setTestProcessId(result.id);
+      message.success('测试流程创建成功');
+      return true;
     } catch (error) {
       console.error('创建测试流程异常:', error);
       message.error('创建测试流程异常');
@@ -185,7 +173,6 @@ const Day3IntegrationTest: React.FC = () => {
 
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
       const startData = {
         business_key: `day3_test_instance_${Date.now()}`,
@@ -200,48 +187,25 @@ const Day3IntegrationTest: React.FC = () => {
         tags: ['frontend', 'day3', 'test']
       };
 
-      const response = await fetch(`/api/v1/process/${testProcessId}/start`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(startData)
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setTestInstanceId(result.data.id);
-        message.success('测试实例启动成功');
-        
-        // 获取创建的任务
-        setTimeout(async () => {
-          try {
-            const tasksResponse = await fetch('/api/v1/user/tasks?page=1&page_size=5', {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            if (tasksResponse.ok) {
-              const tasksResult = await tasksResponse.json();
-              const tasks = tasksResult.data.tasks || [];
-              const testTask = tasks.find((t: any) => t.instance_id === result.data.id);
-              if (testTask) {
-                setTestTaskId(testTask.id);
-              }
-            }
-          } catch (e) {
-            console.warn('获取测试任务失败:', e);
+      const result = await instanceApi.startProcess(testProcessId, startData);
+      setTestInstanceId(result.id);
+      message.success('测试实例启动成功');
+      
+      // 获取创建的任务
+      setTimeout(async () => {
+        try {
+          const tasksData = await taskApi.getUserTasks({ page: 1, page_size: 5 });
+          const tasks = tasksData.tasks || [];
+          const testTask = tasks.find((t: any) => t.instance_id === result.id);
+          if (testTask) {
+            setTestTaskId(testTask.id);
           }
-        }, 1000);
-        
-        return true;
-      } else {
-        message.error('启动测试实例失败');
-        return false;
-      }
+        } catch (e) {
+          console.warn('获取测试任务失败:', e);
+        }
+      }, 1000);
+      
+      return true;
     } catch (error) {
       console.error('启动测试实例异常:', error);
       message.error('启动测试实例异常');

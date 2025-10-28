@@ -105,17 +105,7 @@ const DynamicTaskForm: React.FC<DynamicTaskFormProps> = ({
   const fetchTaskForm = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/task/${taskId}/form`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        const data = result.data;
+      const data = await taskApi.getTaskForm(taskId);
         
         // 解析表单定义
         let definition: FormDefinition;
@@ -145,12 +135,9 @@ const DynamicTaskForm: React.FC<DynamicTaskFormProps> = ({
 
         setFormData(existingData);
         form.setFieldsValue(existingData);
-      } else {
-        message.error('获取任务表单失败');
-      }
     } catch (error) {
       console.error('获取任务表单异常:', error);
-      message.error('获取任务表单异常');
+      message.error('获取任务表单失败');
     } finally {
       setLoading(false);
     }
@@ -405,29 +392,16 @@ const DynamicTaskForm: React.FC<DynamicTaskFormProps> = ({
       const values = await form.validateFields();
       setSaving(true);
 
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/task/${taskId}/form`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: 'save',
-          form_data: values
-        })
+      await taskApi.submitTaskForm(taskId, {
+        action: 'save',
+        form_data: values
       });
 
-      if (response.ok) {
-        message.success('表单保存成功');
-        onSave?.(values);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.message || '表单保存失败');
-      }
+      message.success('表单保存成功');
+      onSave?.(values);
     } catch (error) {
       console.error('保存表单异常:', error);
-      message.error('保存表单异常');
+      message.error('表单保存失败');
     } finally {
       setSaving(false);
     }
@@ -439,30 +413,17 @@ const DynamicTaskForm: React.FC<DynamicTaskFormProps> = ({
       const values = await form.validateFields();
       setSubmitting(true);
 
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/task/${taskId}/form`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: 'complete',
-          form_data: values,
-          comment: values.comment || ''
-        })
+      await taskApi.submitTaskForm(taskId, {
+        action: 'complete',
+        form_data: values,
+        comment: values.comment || ''
       });
 
-      if (response.ok) {
-        message.success('任务完成成功');
-        onSubmit?.(values);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.message || '任务完成失败');
-      }
+      message.success('任务完成成功');
+      onSubmit?.(values);
     } catch (error) {
       console.error('提交表单异常:', error);
-      message.error('提交表单异常');
+      message.error('任务完成失败');
     } finally {
       setSubmitting(false);
     }

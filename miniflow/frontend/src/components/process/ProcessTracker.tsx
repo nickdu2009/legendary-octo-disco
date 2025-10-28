@@ -33,10 +33,13 @@ import {
   UserOutlined,
   SettingOutlined,
   EyeOutlined,
-  FullscreenOutlined
+  FullscreenOutlined,
+  ReloadOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import 'reactflow/dist/style.css';
+import { instanceApi } from '../../services/instanceApi';
+import type { InstanceHistory } from '../../types/instance';
 
 // 类型定义
 interface ProcessTrackerProps {
@@ -223,22 +226,11 @@ const ProcessTracker: React.FC<ProcessTrackerProps> = ({
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/instance/${instanceId}/history`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        updateNodesWithExecutionData(result.data);
-      } else {
-        console.warn('获取执行历史失败');
-      }
+      const history = await instanceApi.getInstanceHistory(instanceId);
+      updateNodesWithExecutionData(history);
     } catch (error) {
       console.error('获取执行历史异常:', error);
+      message.error('获取执行历史失败');
     } finally {
       setLoading(false);
     }

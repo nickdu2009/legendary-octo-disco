@@ -134,6 +134,18 @@ const instanceStatusMap = {
   cancelled: { text: '已取消', color: 'default' }
 };
 
+// 任务状态映射
+const taskStatusMap = {
+  created: { text: '已创建', color: 'default' },
+  assigned: { text: '已分配', color: 'blue' },
+  claimed: { text: '已认领', color: 'orange' },
+  in_progress: { text: '进行中', color: 'processing' },
+  completed: { text: '已完成', color: 'success' },
+  failed: { text: '失败', color: 'error' },
+  skipped: { text: '已跳过', color: 'default' },
+  escalated: { text: '已升级', color: 'warning' }
+};
+
 const ProcessMonitor: React.FC = () => {
   // 状态管理
   const [instances, setInstances] = useState<ProcessInstance[]>([]);
@@ -170,36 +182,22 @@ const ProcessMonitor: React.FC = () => {
   const fetchInstances = async (page: number = 1, pageSize: number = 20) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const params = new URLSearchParams({
-        page: page.toString(),
-        page_size: pageSize.toString(),
+      const data = await instanceApi.getInstances({
+        page,
+        page_size: pageSize,
         ...(filters.status && { status: filters.status }),
-        ...(filters.definition_id && { definition_id: filters.definition_id })
+        ...(filters.definition_id && { definition_id: parseInt(filters.definition_id) })
       });
 
-      const response = await fetch(`/api/v1/instances?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      setInstances(data.instances || []);
+      setPagination({
+        current: data.page,
+        pageSize: data.page_size,
+        total: data.total
       });
-
-      if (response.ok) {
-        const result = await response.json();
-        const data: InstanceListResponse = result.data;
-        setInstances(data.instances || []);
-        setPagination({
-          current: data.page,
-          pageSize: data.page_size,
-          total: data.total
-        });
-      } else {
-        message.error('获取流程实例列表失败');
-      }
     } catch (error) {
       console.error('获取流程实例列表异常:', error);
-      message.error('获取流程实例列表异常');
+      message.error('获取流程实例列表失败');
     } finally {
       setLoading(false);
     }
@@ -208,24 +206,12 @@ const ProcessMonitor: React.FC = () => {
   // 获取执行历史
   const fetchExecutionHistory = async (instanceId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/instance/${instanceId}/history`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setExecutionHistory(result.data);
-        setExecutionHistoryModalVisible(true);
-      } else {
-        message.error('获取执行历史失败');
-      }
+      const history = await instanceApi.getInstanceHistory(instanceId);
+      setExecutionHistory(history);
+      setExecutionHistoryModalVisible(true);
     } catch (error) {
       console.error('获取执行历史异常:', error);
-      message.error('获取执行历史异常');
+      message.error('获取执行历史失败');
     }
   };
 
@@ -239,54 +225,28 @@ const ProcessMonitor: React.FC = () => {
     if (!selectedInstance) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/instance/${selectedInstance.id}/suspend`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          reason: values.reason
-        })
+      await instanceApi.suspendInstance(selectedInstance.id, {
+        reason: values.reason
       });
 
-      if (response.ok) {
-        message.success('流程实例暂停成功');
-        setSuspendModalVisible(false);
-        suspendForm.resetFields();
-        fetchInstances(pagination.current, pagination.pageSize);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.message || '流程实例暂停失败');
-      }
+      message.success('流程实例暂停成功');
+      setSuspendModalVisible(false);
+      suspendForm.resetFields();
+      fetchInstances(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('暂停流程实例异常:', error);
-      message.error('暂停流程实例异常');
+      message.error('暂停流程实例失败');
     }
   };
 
   const handleResumeInstance = async (instanceId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/instance/${instanceId}/resume`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        message.success('流程实例恢复成功');
-        fetchInstances(pagination.current, pagination.pageSize);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.message || '流程实例恢复失败');
-      }
+      await instanceApi.resumeInstance(instanceId);
+      message.success('流程实例恢复成功');
+      fetchInstances(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('恢复流程实例异常:', error);
-      message.error('恢复流程实例异常');
+      message.error('恢复流程实例失败');
     }
   };
 
@@ -294,30 +254,17 @@ const ProcessMonitor: React.FC = () => {
     if (!selectedInstance) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/instance/${selectedInstance.id}/cancel`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          reason: values.reason
-        })
+      await instanceApi.cancelInstance(selectedInstance.id, {
+        reason: values.reason
       });
 
-      if (response.ok) {
-        message.success('流程实例取消成功');
-        setCancelModalVisible(false);
-        cancelForm.resetFields();
-        fetchInstances(pagination.current, pagination.pageSize);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.message || '流程实例取消失败');
-      }
+      message.success('流程实例取消成功');
+      setCancelModalVisible(false);
+      cancelForm.resetFields();
+      fetchInstances(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('取消流程实例异常:', error);
-      message.error('取消流程实例异常');
+      message.error('取消流程实例失败');
     }
   };
 

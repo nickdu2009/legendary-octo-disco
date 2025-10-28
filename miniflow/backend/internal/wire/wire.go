@@ -4,6 +4,7 @@
 package wire
 
 import (
+	"miniflow/internal/engine"
 	"miniflow/internal/handler"
 	"miniflow/internal/middleware"
 	"miniflow/internal/repository"
@@ -39,13 +40,23 @@ var ProviderSet = wire.NewSet(
 	// Repository providers
 	repository.NewUserRepository,
 	repository.NewProcessRepository,
+	repository.NewTaskRepository,
+	repository.NewProcessInstanceRepository,
+
+	// Engine providers (新增)
+	engine.NewProcessEngine,
+	engine.NewTaskAssignmentManager,
 
 	// Service providers
 	service.NewUserService,
 	service.NewProcessService,
 
-	// Handler and Middleware providers
+	// Handler providers
+	handler.NewProcessExecutionHandler,
+	handler.NewTaskManagementHandler,
 	handler.NewRouter,
+	
+	// Middleware providers
 	middleware.NewAuthMiddleware,
 
 	// Server provider

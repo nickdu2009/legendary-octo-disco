@@ -12,16 +12,20 @@ import (
 
 // Router handles HTTP routing setup
 type Router struct {
-	userHandler    *UserHandler
-	processHandler *ProcessHandler
-	authMiddleware *middleware.AuthMiddleware
-	logger         *logger.Logger
+	userHandler           *UserHandler
+	processHandler        *ProcessHandler
+	processExecutionHandler *ProcessExecutionHandler
+	taskManagementHandler *TaskManagementHandler
+	authMiddleware        *middleware.AuthMiddleware
+	logger                *logger.Logger
 }
 
 // NewRouter creates a new router
 func NewRouter(
 	userService *service.UserService,
 	processService *service.ProcessService,
+	processExecutionHandler *ProcessExecutionHandler,
+	taskManagementHandler *TaskManagementHandler,
 	jwtManager *utils.JWTManager,
 	logger *logger.Logger,
 ) *Router {
@@ -30,10 +34,12 @@ func NewRouter(
 	authMiddleware := middleware.NewAuthMiddleware(jwtManager, logger)
 
 	return &Router{
-		userHandler:    userHandler,
-		processHandler: processHandler,
-		authMiddleware: authMiddleware,
-		logger:         logger,
+		userHandler:             userHandler,
+		processHandler:          processHandler,
+		processExecutionHandler: processExecutionHandler,
+		taskManagementHandler:   taskManagementHandler,
+		authMiddleware:          authMiddleware,
+		logger:                  logger,
 	}
 }
 
@@ -85,6 +91,54 @@ func (r *Router) SetupRoutes(e *echo.Echo) {
 		process.POST("/:id/copy", r.processHandler.CopyProcess)
 		process.POST("/:id/publish", r.processHandler.PublishProcess)
 		process.GET("/stats", r.processHandler.GetProcessStats)
+		
+		// 流程执行API (新增)
+		process.POST("/:id/start", r.processExecutionHandler.StartProcess)
+	}
+
+	// 流程实例管理API (新增)
+	instance := api.Group("/instance")
+	instance.Use(r.authMiddleware.JWTAuth())
+	{
+		instance.GET("/:id", r.processExecutionHandler.GetInstance)
+		instance.POST("/:id/suspend", r.processExecutionHandler.SuspendInstance)
+		instance.POST("/:id/resume", r.processExecutionHandler.ResumeInstance)
+		instance.POST("/:id/cancel", r.processExecutionHandler.CancelInstance)
+		instance.GET("/:id/history", r.processExecutionHandler.GetInstanceHistory)
+	}
+
+	// 流程实例列表API (新增)
+	instances := api.Group("/instances")
+	instances.Use(r.authMiddleware.JWTAuth())
+	{
+		instances.GET("", r.processExecutionHandler.GetInstances)
+	}
+
+	// 任务管理API (新增)
+	task := api.Group("/task")
+	task.Use(r.authMiddleware.JWTAuth())
+	{
+		task.GET("/:id", r.taskManagementHandler.GetTask)
+		task.POST("/:id/claim", r.taskManagementHandler.ClaimTask)
+		task.POST("/:id/complete", r.taskManagementHandler.CompleteTask)
+		task.POST("/:id/release", r.taskManagementHandler.ReleaseTask)
+		task.POST("/:id/delegate", r.taskManagementHandler.DelegateTask)
+		task.GET("/:id/form", r.taskManagementHandler.GetTaskForm)
+		task.POST("/:id/form", r.taskManagementHandler.SubmitTaskForm)
+	}
+
+	// 用户任务API (新增)
+	user := api.Group("/user")
+	user.Use(r.authMiddleware.JWTAuth())
+	{
+		user.GET("/tasks", r.taskManagementHandler.GetUserTasks)
+	}
+
+	// 任务状态API (管理员功能，新增)
+	tasks := api.Group("/tasks")
+	tasks.Use(r.authMiddleware.JWTAuth())
+	{
+		tasks.GET("/status/:status", r.taskManagementHandler.GetTasksByStatus)
 	}
 
 	// Admin routes (authentication + admin role required)

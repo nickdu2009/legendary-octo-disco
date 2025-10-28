@@ -8,6 +8,7 @@ import (
 
 	"miniflow/internal/model"
 	"miniflow/internal/repository"
+	"miniflow/pkg/database"
 	"miniflow/pkg/logger"
 
 	"go.uber.org/zap"
@@ -15,12 +16,14 @@ import (
 
 // ProcessEngine 流程执行引擎
 type ProcessEngine struct {
-	instanceRepo   *repository.ProcessInstanceRepository
-	taskRepo       *repository.TaskRepository
-	processRepo    *repository.ProcessRepository
-	userRepo       *repository.UserRepository
-	logger         *logger.Logger
-	taskAssigner   TaskAssignmentStrategy
+	instanceRepo    *repository.ProcessInstanceRepository
+	taskRepo        *repository.TaskRepository
+	processRepo     *repository.ProcessRepository
+	userRepo        *repository.UserRepository
+	logger          *logger.Logger
+	taskAssigner    TaskAssignmentStrategy
+	variableEngine  *VariableEngine
+	serviceExecutor *ServiceExecutor
 }
 
 // NewProcessEngine 创建新的流程执行引擎
@@ -29,15 +32,18 @@ func NewProcessEngine(
 	taskRepo *repository.TaskRepository,
 	processRepo *repository.ProcessRepository,
 	userRepo *repository.UserRepository,
+	db *database.Database,
 	logger *logger.Logger,
 ) *ProcessEngine {
 	return &ProcessEngine{
-		instanceRepo: instanceRepo,
-		taskRepo:     taskRepo,
-		processRepo:  processRepo,
-		userRepo:     userRepo,
-		logger:       logger,
-		taskAssigner: &DirectAssignmentStrategy{}, // 默认使用直接分配策略
+		instanceRepo:    instanceRepo,
+		taskRepo:        taskRepo,
+		processRepo:     processRepo,
+		userRepo:        userRepo,
+		logger:          logger,
+		taskAssigner:    &DirectAssignmentStrategy{}, // 默认使用直接分配策略
+		variableEngine:  NewVariableEngine(logger),
+		serviceExecutor: NewServiceExecutor(db, logger),
 	}
 }
 
@@ -568,15 +574,28 @@ func (e *ProcessEngine) estimateProcessDuration(definition *model.ProcessDefinit
 
 // executeServiceTask 执行服务任务
 func (e *ProcessEngine) executeServiceTask(task *model.TaskInstance, node *model.ProcessNode) error {
-	// TODO: 实现具体的服务任务执行逻辑
 	e.logger.Info("Executing service task",
 		zap.Uint("task_id", task.ID),
 		zap.String("node_id", node.ID),
+		zap.String("task_type", task.TaskType),
 	)
-	
-	// 模拟执行
-	time.Sleep(100 * time.Millisecond)
-	return nil
+
+	// 根据任务类型执行相应的服务
+	switch task.TaskType {
+	case "httpService":
+		return e.serviceExecutor.ExecuteHTTPService(task)
+	case "databaseService":
+		return e.serviceExecutor.ExecuteDatabaseService(task)
+	case "emailService":
+		return e.serviceExecutor.ExecuteEmailService(task)
+	case "scriptService":
+		return e.serviceExecutor.ExecuteScriptService(task)
+	default:
+		// 默认的简单服务任务执行
+		e.logger.Info("Executing default service task", zap.Uint("task_id", task.ID))
+		time.Sleep(100 * time.Millisecond) // 模拟执行时间
+		return nil
+	}
 }
 
 // completeServiceTask 完成服务任务
@@ -694,29 +713,56 @@ func (e *ProcessEngine) evaluateCondition(condition string, variables map[string
 		return true
 	}
 
-	// TODO: 实现完整的条件表达式解析
-	// 这里先实现简单的条件判断
-	// 例如: approved == true
-	
-	e.logger.Info("Evaluating condition",
-		zap.String("condition", condition),
-		zap.Any("variables", variables),
-	)
-
-	// 简单的条件判断示例
-	switch condition {
-	case "${approved} == true", "approved == true":
-		if approved, ok := variables["approved"].(bool); ok {
-			return approved
-		}
-	case "${approved} == false", "approved == false":
-		if approved, ok := variables["approved"].(bool); ok {
-			return !approved
-		}
+	// 使用VariableEngine评估条件
+	result, err := e.variableEngine.EvaluateCondition(condition, variables)
+	if err != nil {
+		e.logger.Error("Condition evaluation failed",
+			zap.String("condition", condition),
+			zap.Any("variables", variables),
+			zap.Error(err),
+		)
+		// 条件评估失败时默认返回true
+		return true
 	}
 
-	// 默认返回true
-	return true
+	return result
+}
+
+// GetInstance 获取流程实例
+func (e *ProcessEngine) GetInstance(instanceID uint) (*model.ProcessInstance, error) {
+	return e.instanceRepo.GetByID(instanceID)
+}
+
+// GetInstances 获取流程实例列表
+func (e *ProcessEngine) GetInstances(offset, limit int, filters map[string]interface{}) ([]model.ProcessInstance, int64, error) {
+	return e.instanceRepo.List(offset, limit, filters)
+}
+
+// GetInstanceHistory 获取流程实例执行历史
+func (e *ProcessEngine) GetInstanceHistory(instanceID uint) (interface{}, error) {
+	// 获取流程实例
+	instance, err := e.instanceRepo.GetByID(instanceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取所有任务
+	tasks, err := e.taskRepo.GetByInstance(instanceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建历史数据
+	history := map[string]interface{}{
+		"instance":       instance,
+		"tasks":          tasks,
+		"execution_path": instance.ExecutionPath,
+		"created_at":     instance.CreatedAt,
+		"start_time":     instance.StartTime,
+		"end_time":       instance.EndTime,
+	}
+
+	return history, nil
 }
 
 // cancelInstanceTasks 取消流程实例的所有任务
@@ -736,4 +782,81 @@ func (e *ProcessEngine) cancelInstanceTasks(instanceID uint) error {
 	}
 
 	return nil
+}
+
+// GetUserTasks 获取用户任务列表
+func (e *ProcessEngine) GetUserTasks(userID uint, status string, offset, limit int) ([]model.TaskInstance, int64, error) {
+	return e.taskRepo.GetUserTasks(userID, status, offset, limit)
+}
+
+// GetTask 获取任务详情
+func (e *ProcessEngine) GetTask(taskID uint) (*model.TaskInstance, error) {
+	return e.taskRepo.GetByID(taskID)
+}
+
+// ClaimTask 认领任务
+func (e *ProcessEngine) ClaimTask(taskID uint, userID uint) error {
+	return e.taskRepo.ClaimTask(taskID, userID)
+}
+
+// ReleaseTask 释放任务
+func (e *ProcessEngine) ReleaseTask(taskID uint, userID uint) error {
+	return e.taskRepo.ReleaseTask(taskID, userID)
+}
+
+// DelegateTask 委派任务
+func (e *ProcessEngine) DelegateTask(taskID uint, fromUserID uint, toUserID uint, comment string) error {
+	return e.taskRepo.DelegateTask(taskID, fromUserID, toUserID)
+}
+
+// GetTaskForm 获取任务表单定义
+func (e *ProcessEngine) GetTaskForm(taskID uint) (interface{}, error) {
+	task, err := e.taskRepo.GetByID(taskID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 解析表单定义
+	var formDefinition interface{}
+	if task.FormDefinition != "" {
+		if err := json.Unmarshal([]byte(task.FormDefinition), &formDefinition); err != nil {
+			return nil, err
+		}
+	}
+
+	return map[string]interface{}{
+		"task":            task,
+		"form_definition": formDefinition,
+		"form_data":       task.FormData,
+	}, nil
+}
+
+// SaveTaskForm 保存任务表单数据
+func (e *ProcessEngine) SaveTaskForm(taskID uint, userID uint, formData map[string]interface{}) error {
+	task, err := e.taskRepo.GetByID(taskID)
+	if err != nil {
+		return err
+	}
+
+	// 验证用户权限
+	if task.AssigneeID == nil || *task.AssigneeID != userID {
+		if task.ClaimedBy == nil || *task.ClaimedBy != userID {
+			return errors.New("用户没有权限保存此任务表单")
+		}
+	}
+
+	// 序列化表单数据
+	formDataJSON, err := json.Marshal(formData)
+	if err != nil {
+		return err
+	}
+
+	// 更新任务表单数据
+	task.FormData = string(formDataJSON)
+	return e.taskRepo.Update(task)
+}
+
+// GetTasksByStatus 根据状态获取任务列表
+func (e *ProcessEngine) GetTasksByStatus(status string, offset, limit int) ([]model.TaskInstance, int64, error) {
+	return e.taskRepo.GetTasksByStatus(status, offset, limit)
 }

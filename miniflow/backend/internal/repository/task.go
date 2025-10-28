@@ -120,7 +120,7 @@ func (r *TaskRepository) GetUserTasks(userID uint, status string, offset, limit 
 	query := r.db.Preload("Instance").
 		Preload("Instance.Definition").
 		Preload("Assignee").
-		Where("assignee_id = ?", userID)
+		Where("assignee_id = ? OR (assignee_id IS NULL AND status = 'created')", userID)
 
 	if status != "" {
 		query = query.Where("status = ?", status)

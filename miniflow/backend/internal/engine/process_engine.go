@@ -142,7 +142,7 @@ func (e *ProcessEngine) StartProcess(req *StartProcessRequest, starterID uint) (
 
 	// 推进到第一个节点
 	if err := e.moveToNextNode(instance, startNode.ID); err != nil {
-		e.logger.Error("Failed to move to first node", 
+		e.logger.Error("Failed to move to first node",
 			zap.Uint("instance_id", instance.ID),
 			zap.String("start_node", startNode.ID),
 			zap.Error(err),
@@ -379,13 +379,13 @@ func (e *ProcessEngine) handleStartNode(instance *model.ProcessInstance, node *m
 	if nextNode == nil {
 		return fmt.Errorf("找不到下一个节点: %s", nextNodeID)
 	}
-	
+
 	e.logger.Info("Processing next node",
 		zap.String("node_id", nextNode.ID),
 		zap.String("node_type", nextNode.Type),
 		zap.String("node_name", nextNode.Name),
 	)
-	
+
 	// 根据下一个节点类型处理
 	switch nextNode.Type {
 	case "userTask":
@@ -426,7 +426,7 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 		Status:            model.TaskStatusCreated,
 		Priority:          instance.Priority,
 		EstimatedDuration: 3600, // 默认1小时
-		
+
 		// 设置默认值避免数据库约束错误
 		RetryCount:       0,
 		MaxRetries:       3,
@@ -435,10 +435,10 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 		RequiresApproval: false,
 		NotificationSent: false,
 		EscalationLevel:  0,
-		
+
 		// 设置JSON字段的默认值
 		ExecutionData:  "{}",
-		FormDefinition: "{}",  // 修复：不能为空字符串，必须是有效JSON
+		FormDefinition: "{}", // 修复：不能为空字符串，必须是有效JSON
 		OutputData:     "{}",
 		Comment:        "",
 		FormData:       "{}",

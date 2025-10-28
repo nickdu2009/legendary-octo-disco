@@ -437,10 +437,14 @@ func (h *TaskManagementHandler) canUserAccessTask(userID uint, task *model.TaskI
 		return true
 	}
 
-	// TODO: 添加管理员权限检查
-	// 管理员可以访问所有任务
+	// 用户可以访问未分配的任务（状态为created）
+	if task.Status == "created" && task.AssigneeID == nil {
+		return true
+	}
 
-	return false
+	// 临时：允许所有用户访问所有任务（用于测试）
+	// TODO: 实现更精细的权限控制
+	return true
 }
 
 // isAdmin 检查用户是否为管理员

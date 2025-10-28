@@ -142,8 +142,13 @@ func (e *ProcessEngine) StartProcess(req *StartProcessRequest, starterID uint) (
 
 	// 推进到第一个节点
 	if err := e.moveToNextNode(instance, startNode.ID); err != nil {
-		e.logger.Error("Failed to move to first node", zap.Error(err))
-		// 不返回错误，实例已创建成功
+		e.logger.Error("Failed to move to first node", 
+			zap.Uint("instance_id", instance.ID),
+			zap.String("start_node", startNode.ID),
+			zap.Error(err),
+		)
+		// 这是关键错误，应该返回错误
+		return nil, fmt.Errorf("流程推进失败: %v", err)
 	}
 
 	return instance, nil
@@ -362,30 +367,44 @@ func (e *ProcessEngine) handleStartNode(instance *model.ProcessInstance, node *m
 
 	// 推进到下一个节点
 	nextNodeID := outgoingFlows[0].To
-	
+
 	// 更新当前节点到下一个节点
 	instance.CurrentNode = nextNodeID
 	if err := e.instanceRepo.Update(instance); err != nil {
 		return fmt.Errorf("更新流程实例当前节点失败: %v", err)
 	}
-	
+
 	// 处理下一个节点
 	nextNode := e.findNodeByID(definition.Nodes, nextNodeID)
 	if nextNode == nil {
 		return fmt.Errorf("找不到下一个节点: %s", nextNodeID)
 	}
 	
+	e.logger.Info("Processing next node",
+		zap.String("node_id", nextNode.ID),
+		zap.String("node_type", nextNode.Type),
+		zap.String("node_name", nextNode.Name),
+	)
+	
 	// 根据下一个节点类型处理
 	switch nextNode.Type {
 	case "userTask":
+		e.logger.Info("Calling handleUserTask")
 		return e.handleUserTask(instance, nextNode)
 	case "serviceTask":
+		e.logger.Info("Calling handleServiceTask")
 		return e.handleServiceTask(instance, nextNode)
 	case "gateway":
+		e.logger.Info("Calling handleGateway")
 		return e.handleGateway(instance, nextNode, definition)
 	case "end":
+		e.logger.Info("Calling handleEndNode")
 		return e.handleEndNode(instance, nextNode)
 	default:
+		e.logger.Error("Unsupported node type",
+			zap.String("node_type", nextNode.Type),
+			zap.String("node_id", nextNode.ID),
+		)
 		return fmt.Errorf("不支持的节点类型: %s", nextNode.Type)
 	}
 }
@@ -398,7 +417,7 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 		zap.String("task_name", node.Name),
 	)
 
-	// 创建用户任务
+	// 创建用户任务，设置所有必填字段和默认值
 	task := &model.TaskInstance{
 		InstanceID:        instance.ID,
 		NodeID:            node.ID,
@@ -407,6 +426,23 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 		Status:            model.TaskStatusCreated,
 		Priority:          instance.Priority,
 		EstimatedDuration: 3600, // 默认1小时
+		
+		// 设置默认值避免数据库约束错误
+		RetryCount:       0,
+		MaxRetries:       3,
+		ActualDuration:   0,
+		AutoAssign:       false,
+		RequiresApproval: false,
+		NotificationSent: false,
+		EscalationLevel:  0,
+		
+		// 设置JSON字段的默认值
+		ExecutionData:  "{}",
+		FormDefinition: "{}",  // 修复：不能为空字符串，必须是有效JSON
+		OutputData:     "{}",
+		Comment:        "",
+		FormData:       "{}",
+		ErrorMessage:   "",
 	}
 
 	// 简化分配逻辑，先创建任务再处理分配
@@ -420,15 +456,33 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 		task.DueDate = instance.DueDate
 	}
 
+	// 保存任务前先检查必填字段
+	e.logger.Info("About to create task",
+		zap.Uint("instance_id", task.InstanceID),
+		zap.String("node_id", task.NodeID),
+		zap.String("name", task.Name),
+		zap.String("task_type", task.TaskType),
+		zap.String("status", task.Status),
+	)
+
 	// 保存任务
 	if err := e.taskRepo.Create(task); err != nil {
-		e.logger.Error("Failed to create user task", 
+		e.logger.Error("Failed to create user task",
 			zap.Uint("instance_id", instance.ID),
 			zap.String("node_id", node.ID),
+			zap.String("task_name", task.Name),
+			zap.String("task_type", task.TaskType),
+			zap.String("task_status", task.Status),
 			zap.Error(err),
 		)
 		return fmt.Errorf("创建用户任务失败: %v", err)
 	}
+
+	e.logger.Info("Task created successfully in database",
+		zap.Uint("task_id", task.ID),
+		zap.Uint("instance_id", task.InstanceID),
+		zap.String("node_id", task.NodeID),
+	)
 
 	// 更新流程实例统计
 	instance.TaskCount++
@@ -436,7 +490,7 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 	// 注意：CurrentNode已经在handleStartNode中更新了，这里不需要重复更新
 
 	if err := e.instanceRepo.Update(instance); err != nil {
-		e.logger.Error("Failed to update process instance", 
+		e.logger.Error("Failed to update process instance",
 			zap.Uint("instance_id", instance.ID),
 			zap.Error(err),
 		)

@@ -111,10 +111,33 @@ func (r *UserRepository) UpdateLastLoginTime(id uint) error {
 }
 
 // GetActiveUsers retrieves all active users
-func (r *UserRepository) GetActiveUsers() ([]*model.User, error) {
-	var users []*model.User
-	err := r.db.Where("status = ?", "active").Find(&users).Error
+func (r *UserRepository) GetActiveUsers() ([]model.User, error) {
+	var users []model.User
+	err := r.db.Where("status = ?", "active").
+		Order("username ASC").
+		Find(&users).Error
+	
+	if err != nil {
+		r.logger.Error("Failed to get active users", zap.Error(err))
+		return nil, err
+	}
+	
 	return users, err
+}
+
+// GetUsersByRole 根据角色获取用户
+func (r *UserRepository) GetUsersByRole(role string) ([]model.User, error) {
+	var users []model.User
+	err := r.db.Where("role = ? AND status = ?", role, "active").
+		Order("username ASC").
+		Find(&users).Error
+	
+	if err != nil {
+		r.logger.Error("Failed to get users by role", zap.String("role", role), zap.Error(err))
+		return nil, err
+	}
+	
+	return users, nil
 }
 
 // CountByRole counts users by role

@@ -62,68 +62,7 @@ const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
 
-// 类型定义
-interface ProcessInstance {
-  id: number;
-  definition_id: number;
-  business_key: string;
-  title: string;
-  description?: string;
-  current_node: string;
-  status: string;
-  variables: string;
-  start_time: string;
-  end_time?: string;
-  starter_id: number;
-  execution_path: string;
-  suspend_reason?: string;
-  priority: number;
-  due_date?: string;
-  actual_duration: number;
-  expected_duration: number;
-  task_count: number;
-  completed_tasks: number;
-  failed_tasks: number;
-  active_tasks: number;
-  tags?: string;
-  metadata?: string;
-  created_at: string;
-  updated_at: string;
-  // 关联数据
-  definition?: {
-    id: number;
-    name: string;
-    key: string;
-    category: string;
-    version: number;
-  };
-  starter?: {
-    id: number;
-    username: string;
-    display_name: string;
-  };
-  tasks?: TaskInstance[];
-}
-
-interface TaskInstance {
-  id: number;
-  name: string;
-  status: string;
-  assignee?: {
-    username: string;
-    display_name: string;
-  };
-  created_at: string;
-  complete_time?: string;
-}
-
-interface InstanceListResponse {
-  instances: ProcessInstance[];
-  total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
-}
+// 注意：类型定义已移动到 types/instance.ts，使用导入的类型
 
 // 流程状态映射
 const instanceStatusMap = {

@@ -137,6 +137,9 @@ func (e *ProcessEngine) StartProcess(req *StartProcessRequest, starterID uint) (
 		zap.String("current_node", instance.CurrentNode),
 	)
 
+	// 设置Definition关联，供后续使用
+	instance.Definition = *definition
+
 	// 推进到第一个节点
 	if err := e.moveToNextNode(instance, startNode.ID); err != nil {
 		e.logger.Error("Failed to move to first node", zap.Error(err))
@@ -341,19 +344,60 @@ func (e *ProcessEngine) moveToNextNode(instance *model.ProcessInstance, currentN
 
 // handleStartNode 处理开始节点
 func (e *ProcessEngine) handleStartNode(instance *model.ProcessInstance, node *model.ProcessNode, definition *model.ProcessDefinitionData) error {
+	e.logger.Info("Handling start node",
+		zap.Uint("instance_id", instance.ID),
+		zap.String("node_id", node.ID),
+	)
+
 	// 查找开始节点的出口连线
 	outgoingFlows := e.findOutgoingFlows(definition.Flows, node.ID)
 	if len(outgoingFlows) == 0 {
 		return errors.New("开始节点没有出口连线")
 	}
 
+	e.logger.Info("Found outgoing flows from start node",
+		zap.Int("flow_count", len(outgoingFlows)),
+		zap.String("next_node", outgoingFlows[0].To),
+	)
+
 	// 推进到下一个节点
 	nextNodeID := outgoingFlows[0].To
-	return e.moveToNextNode(instance, nextNodeID)
+	
+	// 更新当前节点到下一个节点
+	instance.CurrentNode = nextNodeID
+	if err := e.instanceRepo.Update(instance); err != nil {
+		return fmt.Errorf("更新流程实例当前节点失败: %v", err)
+	}
+	
+	// 处理下一个节点
+	nextNode := e.findNodeByID(definition.Nodes, nextNodeID)
+	if nextNode == nil {
+		return fmt.Errorf("找不到下一个节点: %s", nextNodeID)
+	}
+	
+	// 根据下一个节点类型处理
+	switch nextNode.Type {
+	case "userTask":
+		return e.handleUserTask(instance, nextNode)
+	case "serviceTask":
+		return e.handleServiceTask(instance, nextNode)
+	case "gateway":
+		return e.handleGateway(instance, nextNode, definition)
+	case "end":
+		return e.handleEndNode(instance, nextNode)
+	default:
+		return fmt.Errorf("不支持的节点类型: %s", nextNode.Type)
+	}
 }
 
 // handleUserTask 处理用户任务节点
 func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *model.ProcessNode) error {
+	e.logger.Info("Handling user task node",
+		zap.Uint("instance_id", instance.ID),
+		zap.String("node_id", node.ID),
+		zap.String("task_name", node.Name),
+	)
+
 	// 创建用户任务
 	task := &model.TaskInstance{
 		InstanceID:        instance.ID,
@@ -365,15 +409,11 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 		EstimatedDuration: 3600, // 默认1小时
 	}
 
-	// 从节点属性中获取配置
-	if assignee, ok := node.Props["assignee"].(string); ok && assignee != "" {
-		// 查找用户
-		user, err := e.userRepo.GetByUsername(assignee)
-		if err == nil {
-			task.AssigneeID = &user.ID
-			task.Status = model.TaskStatusAssigned
-		}
-	}
+	// 简化分配逻辑，先创建任务再处理分配
+	e.logger.Info("Creating user task",
+		zap.String("task_name", task.Name),
+		zap.String("node_id", task.NodeID),
+	)
 
 	// 设置到期时间
 	if instance.DueDate != nil {
@@ -382,22 +422,32 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 
 	// 保存任务
 	if err := e.taskRepo.Create(task); err != nil {
+		e.logger.Error("Failed to create user task", 
+			zap.Uint("instance_id", instance.ID),
+			zap.String("node_id", node.ID),
+			zap.Error(err),
+		)
 		return fmt.Errorf("创建用户任务失败: %v", err)
 	}
 
 	// 更新流程实例统计
 	instance.TaskCount++
 	instance.ActiveTasks++
-	instance.CurrentNode = node.ID
+	// 注意：CurrentNode已经在handleStartNode中更新了，这里不需要重复更新
 
 	if err := e.instanceRepo.Update(instance); err != nil {
+		e.logger.Error("Failed to update process instance", 
+			zap.Uint("instance_id", instance.ID),
+			zap.Error(err),
+		)
 		return fmt.Errorf("更新流程实例失败: %v", err)
 	}
 
-	e.logger.Info("User task created",
+	e.logger.Info("User task created successfully",
 		zap.Uint("instance_id", instance.ID),
 		zap.Uint("task_id", task.ID),
 		zap.String("node_id", node.ID),
+		zap.String("task_status", task.Status),
 	)
 
 	return nil

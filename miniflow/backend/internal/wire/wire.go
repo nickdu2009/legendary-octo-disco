@@ -55,7 +55,7 @@ var ProviderSet = wire.NewSet(
 	handler.NewProcessExecutionHandler,
 	handler.NewTaskManagementHandler,
 	handler.NewRouter,
-	
+
 	// Middleware providers
 	middleware.NewAuthMiddleware,
 

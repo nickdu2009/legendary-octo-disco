@@ -17,7 +17,6 @@ import (
 	"miniflow/pkg/logger"
 
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 // ServiceExecutor 服务任务执行器
@@ -25,7 +24,7 @@ type ServiceExecutor struct {
 	httpClient *http.Client
 	db         *database.Database
 	logger     *logger.Logger
-	
+
 	// 异步执行结果存储
 	executionResults map[uint]*ExecutionResult
 	resultMutex      sync.RWMutex
@@ -33,13 +32,13 @@ type ServiceExecutor struct {
 
 // ExecutionResult 执行结果
 type ExecutionResult struct {
-	TaskID      uint        `json:"task_id"`
-	Status      string      `json:"status"` // success, failed, running
-	Result      interface{} `json:"result"`
-	Error       string      `json:"error,omitempty"`
-	StartTime   time.Time   `json:"start_time"`
-	EndTime     *time.Time  `json:"end_time,omitempty"`
-	Duration    int64       `json:"duration"` // 毫秒
+	TaskID    uint        `json:"task_id"`
+	Status    string      `json:"status"` // success, failed, running
+	Result    interface{} `json:"result"`
+	Error     string      `json:"error,omitempty"`
+	StartTime time.Time   `json:"start_time"`
+	EndTime   *time.Time  `json:"end_time,omitempty"`
+	Duration  int64       `json:"duration"` // 毫秒
 }
 
 // NewServiceExecutor 创建服务任务执行器
@@ -96,9 +95,9 @@ func (e *ServiceExecutor) ExecuteHTTPService(task *model.TaskInstance) error {
 
 	// 保存执行结果
 	result := &ExecutionResult{
-		TaskID:    task.ID,
-		Status:    "success",
-		Result:    map[string]interface{}{
+		TaskID: task.ID,
+		Status: "success",
+		Result: map[string]interface{}{
 			"status_code": resp.StatusCode,
 			"headers":     resp.Header,
 			"body":        string(body),
@@ -283,7 +282,7 @@ func (e *ServiceExecutor) ExecuteScriptService(task *model.TaskInstance) error {
 func (e *ServiceExecutor) ExecuteAsync(task *model.TaskInstance, callback func(result interface{}, err error)) error {
 	go func() {
 		var err error
-		
+
 		// 根据任务类型执行
 		switch task.TaskType {
 		case "httpService":
@@ -300,7 +299,7 @@ func (e *ServiceExecutor) ExecuteAsync(task *model.TaskInstance, callback func(r
 
 		// 获取执行结果
 		result := e.getExecutionResult(task.ID)
-		
+
 		// 调用回调函数
 		if callback != nil {
 			callback(result, err)
@@ -460,7 +459,7 @@ func (e *ServiceExecutor) createHTTPRequest(config *HTTPServiceConfig) (*http.Re
 
 func (e *ServiceExecutor) executeSelectQuery(config *DatabaseServiceConfig) (interface{}, error) {
 	var results []map[string]interface{}
-	
+
 	sql := config.SQL
 	if sql == "" && config.Table != "" {
 		sql = fmt.Sprintf("SELECT * FROM %s", config.Table)
@@ -542,7 +541,7 @@ func (e *ServiceExecutor) buildEmailMessage(config *EmailServiceConfig) string {
 
 func (e *ServiceExecutor) sendEmail(config *EmailServiceConfig, message string) error {
 	auth := smtp.PlainAuth("", config.Username, config.Password, config.SMTPHost)
-	
+
 	// 收集所有收件人
 	recipients := append(config.To, config.CC...)
 	recipients = append(recipients, config.BCC...)
@@ -572,15 +571,16 @@ func (e *ServiceExecutor) executeScript(config *ScriptServiceConfig) (interface{
 func (e *ServiceExecutor) executeJavaScript(config *ScriptServiceConfig) (interface{}, error) {
 	// 简化的JavaScript执行，实际应该使用V8或其他JS引擎
 	// 这里只是示例实现
-	
+
 	e.logger.Warn("JavaScript execution is simplified for demo purposes",
 		zap.String("script", config.Script),
 	)
 
 	// 模拟脚本执行结果
 	return map[string]interface{}{
-		"message": "JavaScript execution completed (demo)",
-		"script":  config.Script,
+		"message":    "JavaScript execution completed (demo)",
+		"script":     config.Script,
 		"parameters": config.Parameters,
 	}, nil
 }
+

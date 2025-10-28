@@ -9,7 +9,6 @@ import (
 	"miniflow/pkg/logger"
 
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 // TaskRepository 任务数据访问层
@@ -43,12 +42,12 @@ func (r *TaskRepository) GetByID(id uint) (*model.TaskInstance, error) {
 		Preload("ClaimedUser").
 		Preload("CompletedUser").
 		First(&task, id).Error
-	
+
 	if err != nil {
 		r.logger.Error("Failed to get task by ID", zap.Uint("id", id), zap.Error(err))
 		return nil, err
 	}
-	
+
 	return &task, nil
 }
 
@@ -79,12 +78,12 @@ func (r *TaskRepository) GetByInstance(instanceID uint) ([]model.TaskInstance, e
 		Where("instance_id = ?", instanceID).
 		Order("created_at ASC").
 		Find(&tasks).Error
-	
+
 	if err != nil {
 		r.logger.Error("Failed to get tasks by instance", zap.Uint("instance_id", instanceID), zap.Error(err))
 		return nil, err
 	}
-	
+
 	return tasks, nil
 }
 
@@ -95,11 +94,11 @@ func (r *TaskRepository) GetByInstanceAndNode(instanceID uint, nodeID string, st
 		Preload("ClaimedUser").
 		Preload("CompletedUser").
 		Where("instance_id = ? AND node_id = ?", instanceID, nodeID)
-	
+
 	if len(statuses) > 0 {
 		query = query.Where("status IN ?", statuses)
 	}
-	
+
 	err := query.Find(&tasks).Error
 	if err != nil {
 		r.logger.Error("Failed to get tasks by instance and node",
@@ -109,7 +108,7 @@ func (r *TaskRepository) GetByInstanceAndNode(instanceID uint, nodeID string, st
 		)
 		return nil, err
 	}
-	
+
 	return tasks, nil
 }
 
@@ -198,7 +197,7 @@ func (r *TaskRepository) GetTasksByStatus(status string, offset, limit int) ([]m
 func (r *TaskRepository) GetOverdueTasks() ([]model.TaskInstance, error) {
 	var tasks []model.TaskInstance
 	now := time.Now()
-	
+
 	err := r.db.Preload("Instance").
 		Preload("Assignee").
 		Where("due_date < ? AND status IN ?", now, []string{
@@ -220,7 +219,7 @@ func (r *TaskRepository) GetOverdueTasks() ([]model.TaskInstance, error) {
 func (r *TaskRepository) ClaimTask(taskID uint, userID uint) error {
 	now := time.Now()
 	result := r.db.Model(&model.TaskInstance{}).
-		Where("id = ? AND status = ? AND (assignee_id = ? OR assignee_id IS NULL)", 
+		Where("id = ? AND status = ? AND (assignee_id = ? OR assignee_id IS NULL)",
 			taskID, model.TaskStatusAssigned, userID).
 		Updates(map[string]interface{}{
 			"status":     model.TaskStatusClaimed,
@@ -244,7 +243,7 @@ func (r *TaskRepository) ClaimTask(taskID uint, userID uint) error {
 // ReleaseTask 释放任务
 func (r *TaskRepository) ReleaseTask(taskID uint, userID uint) error {
 	result := r.db.Model(&model.TaskInstance{}).
-		Where("id = ? AND claimed_by = ? AND status = ?", 
+		Where("id = ? AND claimed_by = ? AND status = ?",
 			taskID, userID, model.TaskStatusClaimed).
 		Updates(map[string]interface{}{
 			"status":     model.TaskStatusAssigned,
@@ -277,7 +276,7 @@ func (r *TaskRepository) DelegateTask(taskID uint, fromUserID uint, toUserID uin
 		})
 
 	if result.Error != nil {
-		r.logger.Error("Failed to delegate task", 
+		r.logger.Error("Failed to delegate task",
 			zap.Uint("task_id", taskID),
 			zap.Uint("from_user", fromUserID),
 			zap.Uint("to_user", toUserID),
@@ -331,7 +330,7 @@ func (r *TaskRepository) GetTaskStatistics() (*TaskStatistics, error) {
 	}
 
 	// 计算总数
-	stats.TotalCount = stats.CreatedCount + stats.AssignedCount + stats.ClaimedCount + 
+	stats.TotalCount = stats.CreatedCount + stats.AssignedCount + stats.ClaimedCount +
 		stats.InProgressCount + stats.CompletedCount + stats.FailedCount
 
 	return &stats, nil

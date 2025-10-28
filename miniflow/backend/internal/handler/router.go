@@ -12,12 +12,12 @@ import (
 
 // Router handles HTTP routing setup
 type Router struct {
-	userHandler           *UserHandler
-	processHandler        *ProcessHandler
+	userHandler             *UserHandler
+	processHandler          *ProcessHandler
 	processExecutionHandler *ProcessExecutionHandler
-	taskManagementHandler *TaskManagementHandler
-	authMiddleware        *middleware.AuthMiddleware
-	logger                *logger.Logger
+	taskManagementHandler   *TaskManagementHandler
+	authMiddleware          *middleware.AuthMiddleware
+	logger                  *logger.Logger
 }
 
 // NewRouter creates a new router
@@ -91,7 +91,7 @@ func (r *Router) SetupRoutes(e *echo.Echo) {
 		process.POST("/:id/copy", r.processHandler.CopyProcess)
 		process.POST("/:id/publish", r.processHandler.PublishProcess)
 		process.GET("/stats", r.processHandler.GetProcessStats)
-		
+
 		// 流程执行API (新增)
 		process.POST("/:id/start", r.processExecutionHandler.StartProcess)
 	}

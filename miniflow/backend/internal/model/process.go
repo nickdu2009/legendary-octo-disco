@@ -231,18 +231,4 @@ const (
 	NodeTypeGateway     = "gateway"
 )
 
-// ProcessInstanceStatus constants
-const (
-	InstanceStatusRunning   = "running"
-	InstanceStatusCompleted = "completed"
-	InstanceStatusSuspended = "suspended"
-	InstanceStatusAborted   = "aborted"
-)
-
-// TaskInstanceStatus constants
-const (
-	TaskStatusCreated   = "created"
-	TaskStatusClaimed   = "claimed"
-	TaskStatusCompleted = "completed"
-	TaskStatusSkipped   = "skipped"
-)
+// 注意：状态常量已在文件开头定义，这里删除重复定义

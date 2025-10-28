@@ -353,9 +353,9 @@ func (m *TaskAssignmentManager) getAvailableUsers(task *model.TaskInstance) ([]*
 	// 例如：角色要求、技能要求、工作组等
 
 	var availableUsers []*model.User
-	for _, user := range users {
-		if m.isUserAvailable(user, task) {
-			availableUsers = append(availableUsers, &user)
+	for i := range users {
+		if m.isUserAvailable(&users[i], task) {
+			availableUsers = append(availableUsers, &users[i])
 		}
 	}
 

@@ -93,18 +93,18 @@ func (e *VariableEngine) EvaluateCondition(condition string, variables map[strin
 func (e *VariableEngine) replaceVariables(condition string, variables map[string]interface{}) (string, error) {
 	// 匹配 ${variable} 格式的变量引用
 	varPattern := regexp.MustCompile(`\$\{([^}]+)\}`)
-	
+
 	result := varPattern.ReplaceAllStringFunc(condition, func(match string) string {
 		// 提取变量名
 		varName := strings.Trim(match[2:len(match)-1], " ")
-		
+
 		// 查找变量值
 		if value, exists := variables[varName]; exists {
 			return e.formatValue(value)
 		}
-		
+
 		// 变量不存在时返回原始字符串
-		e.logger.Warn("Variable not found in condition", 
+		e.logger.Warn("Variable not found in condition",
 			zap.String("variable", varName),
 			zap.String("condition", condition),
 		)
@@ -147,7 +147,7 @@ func (e *VariableEngine) formatValue(value interface{}) string {
 func (e *VariableEngine) evaluateExpression(expression string) (bool, error) {
 	// 去除首尾空格
 	expression = strings.TrimSpace(expression)
-	
+
 	// 处理简单的比较表达式
 	if result, err := e.evaluateComparison(expression); err == nil {
 		return result, nil
@@ -175,7 +175,7 @@ func (e *VariableEngine) evaluateExpression(expression string) (bool, error) {
 func (e *VariableEngine) evaluateComparison(expression string) (bool, error) {
 	// 支持的比较操作符
 	operators := []string{"==", "!=", ">=", "<=", ">", "<"}
-	
+
 	for _, op := range operators {
 		if strings.Contains(expression, op) {
 			parts := strings.SplitN(expression, op, 2)
@@ -359,7 +359,7 @@ func (e *VariableEngine) valuesEqual(left, right interface{}) bool {
 	// 类型转换后比较
 	leftStr := fmt.Sprintf("%v", left)
 	rightStr := fmt.Sprintf("%v", right)
-	
+
 	return leftStr == rightStr
 }
 
@@ -426,7 +426,7 @@ func (e *VariableEngine) toFloat64(value interface{}) (float64, error) {
 // parseBooleanValue 解析布尔值
 func (e *VariableEngine) parseBooleanValue(expression string) (bool, error) {
 	expression = strings.ToLower(strings.TrimSpace(expression))
-	
+
 	switch expression {
 	case "true", "1", "yes", "on":
 		return true, nil
@@ -490,3 +490,4 @@ func (e *VariableEngine) validateBasicSyntax(expression string) error {
 
 	return nil
 }
+

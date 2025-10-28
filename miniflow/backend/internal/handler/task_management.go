@@ -122,7 +122,7 @@ func (h *TaskManagementHandler) ClaimTask(c echo.Context) error {
 
 	// 认领任务
 	if err := h.engine.ClaimTask(uint(taskID), userID); err != nil {
-		h.logger.Error("Failed to claim task", 
+		h.logger.Error("Failed to claim task",
 			zap.Uint("task_id", uint(taskID)),
 			zap.Uint("user_id", userID),
 			zap.Error(err),
@@ -452,3 +452,4 @@ func (h *TaskManagementHandler) isAdmin(c echo.Context) bool {
 	}
 	return false
 }
+

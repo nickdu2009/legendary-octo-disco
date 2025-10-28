@@ -29,13 +29,13 @@ func NewProcessExecutionHandler(engine *engine.ProcessEngine, logger *logger.Log
 
 // StartProcessRequest 启动流程请求
 type StartProcessRequest struct {
-	BusinessKey  string                 `json:"business_key" validate:"required,min=1,max=255"`
-	Title        string                 `json:"title" validate:"max=255"`
-	Description  string                 `json:"description"`
-	Variables    map[string]interface{} `json:"variables"`
-	Priority     int                    `json:"priority" validate:"min=1,max=100"`
-	DueDate      *time.Time             `json:"due_date"`
-	Tags         []string               `json:"tags"`
+	BusinessKey string                 `json:"business_key" validate:"required,min=1,max=255"`
+	Title       string                 `json:"title" validate:"max=255"`
+	Description string                 `json:"description"`
+	Variables   map[string]interface{} `json:"variables"`
+	Priority    int                    `json:"priority" validate:"min=1,max=100"`
+	DueDate     *time.Time             `json:"due_date"`
+	Tags        []string               `json:"tags"`
 }
 
 // StartProcess 启动流程实例
@@ -86,7 +86,7 @@ func (h *ProcessExecutionHandler) StartProcess(c echo.Context) error {
 	// 启动流程实例
 	instance, err := h.engine.StartProcess(startReq, userID)
 	if err != nil {
-		h.logger.Error("Failed to start process", 
+		h.logger.Error("Failed to start process",
 			zap.Uint("process_id", uint(processID)),
 			zap.Uint("user_id", userID),
 			zap.Error(err),
@@ -192,11 +192,11 @@ func (h *ProcessExecutionHandler) GetInstances(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"success": true,
 		"data": map[string]interface{}{
-			"instances":    instances,
-			"total":        total,
-			"page":         req.Page,
-			"page_size":    req.PageSize,
-			"total_pages":  (total + int64(req.PageSize) - 1) / int64(req.PageSize),
+			"instances":   instances,
+			"total":       total,
+			"page":        req.Page,
+			"page_size":   req.PageSize,
+			"total_pages": (total + int64(req.PageSize) - 1) / int64(req.PageSize),
 		},
 	})
 }
@@ -335,3 +335,4 @@ func getUserIDFromContext(c echo.Context) uint {
 	}
 	return 0
 }
+

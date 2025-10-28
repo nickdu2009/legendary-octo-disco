@@ -4,18 +4,24 @@ import (
 	"errors"
 	"miniflow/internal/model"
 	"miniflow/pkg/database"
+	"miniflow/pkg/logger"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 // UserRepository handles user data access
 type UserRepository struct {
-	db *database.Database
+	db     *database.Database
+	logger *logger.Logger
 }
 
 // NewUserRepository creates a new user repository
-func NewUserRepository(db *database.Database) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(db *database.Database, logger *logger.Logger) *UserRepository {
+	return &UserRepository{
+		db:     db,
+		logger: logger,
+	}
 }
 
 // Create creates a new user

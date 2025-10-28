@@ -170,7 +170,7 @@ func (e *ProcessEngine) CompleteTask(taskID uint, userID uint, formData map[stri
 	task.CompletedBy = &userID
 	task.Comment = comment
 	task.FormData = string(formDataJSON)
-	
+
 	// 计算实际执行时间
 	if task.StartTime != nil {
 		task.ActualDuration = int(now.Sub(*task.StartTime).Seconds())
@@ -413,12 +413,12 @@ func (e *ProcessEngine) handleServiceTask(instance *model.ProcessInstance, node 
 	// 立即执行服务任务
 	if err := e.executeServiceTask(task, node); err != nil {
 		e.logger.Error("Service task execution failed", zap.Error(err))
-		
+
 		// 标记任务失败
 		task.Status = model.TaskStatusFailed
 		task.ErrorMessage = err.Error()
 		task.RetryCount++
-		
+
 		if err := e.taskRepo.Update(task); err != nil {
 			return fmt.Errorf("更新任务状态失败: %v", err)
 		}
@@ -539,18 +539,18 @@ func (e *ProcessEngine) getInstanceVariables(instanceID uint) (map[string]interf
 // updateExecutionPath 更新执行路径
 func (e *ProcessEngine) updateExecutionPath(instance *model.ProcessInstance, nodeID string) {
 	pathEntry := fmt.Sprintf(`{"node":"%s","timestamp":"%s"}`, nodeID, time.Now().Format(time.RFC3339))
-	
+
 	// 解析现有路径
 	var path []interface{}
 	if err := json.Unmarshal([]byte(instance.ExecutionPath), &path); err != nil {
 		path = []interface{}{}
 	}
-	
+
 	// 添加新路径
 	var newPathEntry interface{}
 	json.Unmarshal([]byte(pathEntry), &newPathEntry)
 	path = append(path, newPathEntry)
-	
+
 	// 序列化回去
 	if pathJSON, err := json.Marshal(path); err == nil {
 		instance.ExecutionPath = string(pathJSON)

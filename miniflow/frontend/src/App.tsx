@@ -13,11 +13,16 @@ import ProcessTest from './pages/process/ProcessTest';
 import ProductionProcessEditor from './pages/process/ProductionProcessEditor';
 import EnhancedProcessList from './pages/process/EnhancedProcessList';
 
+// Task management pages (新增)
+import TaskWorkspace from './pages/tasks/TaskWorkspace';
+import ProcessMonitor from './pages/process/ProcessMonitor';
+
 // Development and testing pages
 import ReactFlowDemo from './pages/dev/ReactFlowDemo';
 import BasicProcessDemo from './pages/dev/BasicProcessDemo';
 import EnhancedProcessDemo from './pages/dev/EnhancedProcessDemo';
 import Day3FeatureTest from './pages/dev/Day3FeatureTest';
+import Day3IntegrationTest from './pages/dev/Day3IntegrationTest';
 import Day4Test from './pages/dev/Day4Test';
 import SystemIntegrationTest from './pages/system/SystemIntegrationTest';
 import PerformanceMonitor from './pages/system/PerformanceMonitor';
@@ -63,16 +68,9 @@ function App() {
             {/* Main pages */}
             <Route path="dashboard" element={<Dashboard />} />
             
-            {/* Placeholder pages for future development */}
-            <Route 
-              path="tasks" 
-              element={
-                <div style={{ padding: 24, textAlign: 'center' }}>
-                  <h2>我的任务</h2>
-                  <p>任务管理功能将在后续版本中实现</p>
-                </div>
-              } 
-            />
+            {/* Task management routes (新增) */}
+            <Route path="tasks" element={<TaskWorkspace />} />
+            <Route path="tasks/workspace" element={<TaskWorkspace />} />
             <Route 
               path="profile" 
               element={
@@ -90,12 +88,17 @@ function App() {
             <Route path="process/:id/view" element={<ProductionProcessEditor />} />
             <Route path="process/production" element={<ProductionProcessEditor />} />
             <Route path="process/test" element={<ProcessTest />} />
+            
+            {/* Process monitoring routes (新增) */}
+            <Route path="process/monitor" element={<ProcessMonitor />} />
+            <Route path="process/instances" element={<ProcessMonitor />} />
 
             {/* Development and demo routes */}
             <Route path="dev/basic" element={<BasicProcessDemo />} />
             <Route path="dev/enhanced" element={<EnhancedProcessDemo />} />
             <Route path="dev/demo" element={<ReactFlowDemo />} />
             <Route path="dev/day3" element={<Day3FeatureTest />} />
+            <Route path="dev/day3-integration" element={<Day3IntegrationTest />} />
             <Route path="dev/day4" element={<Day4Test />} />
 
             {/* System testing and monitoring routes */}

@@ -55,11 +55,40 @@ const MainLayout: React.FC = () => {
       key: '/process',
       icon: <ApartmentOutlined />,
       label: '流程管理',
+      children: [
+        {
+          key: '/process',
+          icon: <ApartmentOutlined />,
+          label: '流程定义',
+        },
+        {
+          key: '/process/monitor',
+          icon: <MonitorOutlined />,
+          label: '流程监控',
+        },
+        {
+          key: '/process/instances',
+          icon: <EyeOutlined />,
+          label: '实例管理',
+        },
+      ],
     },
     {
       key: '/tasks',
       icon: <CheckSquareOutlined />,
-      label: '我的任务',
+      label: '任务中心',
+      children: [
+        {
+          key: '/tasks/workspace',
+          icon: <CheckSquareOutlined />,
+          label: '我的工作台',
+        },
+        {
+          key: '/tasks',
+          icon: <UserOutlined />,
+          label: '任务列表',
+        },
+      ],
     },
     // Admin menu items
     ...(isAdmin() ? [
@@ -145,6 +174,11 @@ const MainLayout: React.FC = () => {
             label: 'Day3功能测试',
           },
           {
+            key: '/dev/day3-integration',
+            icon: <UserOutlined />,
+            label: 'Day3前端界面',
+          },
+          {
             key: '/dev/day4',
             icon: <MonitorOutlined />,
             label: 'Day4 API测试',
@@ -192,8 +226,11 @@ const MainLayout: React.FC = () => {
   const getPageTitle = () => {
     const pathTitleMap: Record<string, string> = {
       '/dashboard': '仪表板',
-      '/process': '流程管理',
-      '/tasks': '我的任务',
+      '/process': '流程定义',
+      '/process/monitor': '流程监控',
+      '/process/instances': '实例管理',
+      '/tasks': '任务列表',
+      '/tasks/workspace': '我的工作台',
       '/profile': '个人资料',
       '/settings': '设置',
       '/admin/users': '用户管理',
@@ -205,6 +242,7 @@ const MainLayout: React.FC = () => {
       '/dev/enhanced': '增强演示',
       '/dev/demo': 'ReactFlow演示',
       '/dev/day3': 'Day3功能测试',
+      '/dev/day3-integration': 'Day3前端界面集成',
       '/dev/day4': 'Day4 API测试',
     };
     return pathTitleMap[location.pathname] || 'MiniFlow';

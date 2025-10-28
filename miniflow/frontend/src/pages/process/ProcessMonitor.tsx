@@ -22,6 +22,15 @@ import {
   Popconfirm,
   Drawer
 } from 'antd';
+import { instanceApi } from '../../services/instanceApi';
+import type { 
+  ProcessInstance, 
+  InstanceListResponse, 
+  InstanceFilterParams,
+  SuspendInstanceRequest,
+  CancelInstanceRequest,
+  InstanceHistory 
+} from '../../types/instance';
 import {
   SearchOutlined,
   ReloadOutlined,

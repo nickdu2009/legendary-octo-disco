@@ -20,6 +20,14 @@ import {
   Descriptions,
   Timeline
 } from 'antd';
+import { taskApi } from '../../services/taskApi';
+import type { 
+  TaskInstance, 
+  TaskListResponse, 
+  TaskFilterParams,
+  CompleteTaskRequest,
+  DelegateTaskRequest 
+} from '../../types/task';
 import {
   SearchOutlined,
   ReloadOutlined,
@@ -46,69 +54,7 @@ const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
 
-// 类型定义
-interface TaskInstance {
-  id: number;
-  instance_id: number;
-  node_id: string;
-  name: string;
-  assignee_id?: number;
-  status: string;
-  priority: number;
-  due_date?: string;
-  claim_time?: string;
-  complete_time?: string;
-  comment?: string;
-  form_data?: string;
-  task_type: string;
-  execution_data?: string;
-  retry_count: number;
-  max_retries: number;
-  error_message?: string;
-  estimated_duration: number;
-  actual_duration: number;
-  start_time?: string;
-  auto_assign: boolean;
-  requires_approval: boolean;
-  notification_sent: boolean;
-  escalation_level: number;
-  form_definition?: string;
-  output_data?: string;
-  claimed_by?: number;
-  completed_by?: number;
-  last_modified: string;
-  created_at: string;
-  updated_at: string;
-  // 关联数据
-  instance?: {
-    id: number;
-    business_key: string;
-    title: string;
-    status: string;
-    definition?: {
-      name: string;
-      category: string;
-    };
-  };
-  assignee?: {
-    id: number;
-    username: string;
-    display_name: string;
-  };
-  claimed_user?: {
-    id: number;
-    username: string;
-    display_name: string;
-  };
-}
-
-interface TaskListResponse {
-  tasks: TaskInstance[];
-  total: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
-}
+// 注意：类型定义已移动到 types/task.ts
 
 // 任务状态映射
 const taskStatusMap = {
@@ -172,36 +118,22 @@ const TaskWorkspace: React.FC = () => {
   const fetchTasks = async (page: number = 1, pageSize: number = 20) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const params = new URLSearchParams({
-        page: page.toString(),
-        page_size: pageSize.toString(),
+      const data = await taskApi.getUserTasks({
+        page,
+        page_size: pageSize,
         ...(filters.status && { status: filters.status }),
         ...(filters.priority && { priority: filters.priority })
       });
 
-      const response = await fetch(`/api/v1/user/tasks?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      setTasks(data.tasks || []);
+      setPagination({
+        current: data.page,
+        pageSize: data.page_size,
+        total: data.total
       });
-
-      if (response.ok) {
-        const result = await response.json();
-        const data: TaskListResponse = result.data;
-        setTasks(data.tasks || []);
-        setPagination({
-          current: data.page,
-          pageSize: data.page_size,
-          total: data.total
-        });
-      } else {
-        message.error('获取任务列表失败');
-      }
     } catch (error) {
       console.error('获取任务列表异常:', error);
-      message.error('获取任务列表异常');
+      message.error('获取任务列表失败');
     } finally {
       setLoading(false);
     }
@@ -225,25 +157,12 @@ const TaskWorkspace: React.FC = () => {
   // 任务操作方法
   const handleClaimTask = async (taskId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/task/${taskId}/claim`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        message.success('任务认领成功');
-        fetchTasks(pagination.current, pagination.pageSize);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.message || '任务认领失败');
-      }
+      await taskApi.claimTask(taskId);
+      message.success('任务认领成功');
+      fetchTasks(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('任务认领异常:', error);
-      message.error('任务认领异常');
+      message.error('任务认领失败');
     }
   };
 
@@ -251,31 +170,18 @@ const TaskWorkspace: React.FC = () => {
     if (!selectedTask) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/task/${selectedTask.id}/complete`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          form_data: values.formData || {},
-          comment: values.comment || ''
-        })
+      await taskApi.completeTask(selectedTask.id, {
+        form_data: values.formData || {},
+        comment: values.comment || ''
       });
-
-      if (response.ok) {
-        message.success('任务完成成功');
-        setCompleteModalVisible(false);
-        completeForm.resetFields();
-        fetchTasks(pagination.current, pagination.pageSize);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.message || '任务完成失败');
-      }
+      
+      message.success('任务完成成功');
+      setCompleteModalVisible(false);
+      completeForm.resetFields();
+      fetchTasks(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('任务完成异常:', error);
-      message.error('任务完成异常');
+      message.error('任务完成失败');
     }
   };
 
@@ -283,55 +189,29 @@ const TaskWorkspace: React.FC = () => {
     if (!selectedTask) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/task/${selectedTask.id}/delegate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          to_user_id: values.toUserId,
-          comment: values.comment || ''
-        })
+      await taskApi.delegateTask(selectedTask.id, {
+        to_user_id: values.toUserId,
+        comment: values.comment || ''
       });
-
-      if (response.ok) {
-        message.success('任务委派成功');
-        setDelegateModalVisible(false);
-        delegateForm.resetFields();
-        fetchTasks(pagination.current, pagination.pageSize);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.message || '任务委派失败');
-      }
+      
+      message.success('任务委派成功');
+      setDelegateModalVisible(false);
+      delegateForm.resetFields();
+      fetchTasks(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('任务委派异常:', error);
-      message.error('任务委派异常');
+      message.error('任务委派失败');
     }
   };
 
   const handleReleaseTask = async (taskId: number) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/v1/task/${taskId}/release`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        message.success('任务释放成功');
-        fetchTasks(pagination.current, pagination.pageSize);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.message || '任务释放失败');
-      }
+      await taskApi.releaseTask(taskId);
+      message.success('任务释放成功');
+      fetchTasks(pagination.current, pagination.pageSize);
     } catch (error) {
       console.error('任务释放异常:', error);
-      message.error('任务释放异常');
+      message.error('任务释放失败');
     }
   };
 

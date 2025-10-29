@@ -11,14 +11,12 @@ import (
 
 // ProcessStateMachine 流程实例状态机
 type ProcessStateMachine struct {
-	engine *ProcessEngine
 	logger *logger.Logger
 }
 
 // NewProcessStateMachine 创建流程实例状态机
 func NewProcessStateMachine(engine *ProcessEngine, logger *logger.Logger) *ProcessStateMachine {
 	return &ProcessStateMachine{
-		engine: engine,
 		logger: logger,
 	}
 }
@@ -37,14 +35,8 @@ func (sm *ProcessStateMachine) TransitionTo(instance *model.ProcessInstance, new
 	switch newStatus {
 	case model.InstanceStatusRunning:
 		return sm.handleRunningState(instance)
-	case model.InstanceStatusSuspended:
-		return sm.handleSuspendedState(instance, reason)
 	case model.InstanceStatusCompleted:
 		return sm.handleCompletedState(instance)
-	case model.InstanceStatusFailed:
-		return sm.handleFailedState(instance, reason)
-	case model.InstanceStatusCancelled:
-		return sm.handleCancelledState(instance, reason)
 	}
 
 	// 更新实例状态
@@ -68,20 +60,9 @@ func (sm *ProcessStateMachine) CanTransition(from, to string) bool {
 	// 定义允许的状态转换
 	allowedTransitions := map[string][]string{
 		model.InstanceStatusRunning: {
-			model.InstanceStatusSuspended,
 			model.InstanceStatusCompleted,
-			model.InstanceStatusFailed,
-			model.InstanceStatusCancelled,
-		},
-		model.InstanceStatusSuspended: {
-			model.InstanceStatusRunning,
-			model.InstanceStatusCancelled,
 		},
 		model.InstanceStatusCompleted: {},
-		model.InstanceStatusFailed: {
-			model.InstanceStatusRunning,
-		},
-		model.InstanceStatusCancelled: {},
 	}
 
 	// 允许转换到自身状态
@@ -90,8 +71,8 @@ func (sm *ProcessStateMachine) CanTransition(from, to string) bool {
 	}
 
 	// 检查目标状态是否在允许列表中
-	if allowed, exists := allowedTransitions[from]; exists {
-		for _, status := range allowed {
+	if transitions, exists := allowedTransitions[from]; exists {
+		for _, status := range transitions {
 			if status == to {
 				return true
 			}
@@ -105,20 +86,9 @@ func (sm *ProcessStateMachine) CanTransition(from, to string) bool {
 func (sm *ProcessStateMachine) GetAvailableTransitions(currentStatus string) []string {
 	allowedTransitions := map[string][]string{
 		model.InstanceStatusRunning: {
-			model.InstanceStatusSuspended,
 			model.InstanceStatusCompleted,
-			model.InstanceStatusFailed,
-			model.InstanceStatusCancelled,
-		},
-		model.InstanceStatusSuspended: {
-			model.InstanceStatusRunning,
-			model.InstanceStatusCancelled,
 		},
 		model.InstanceStatusCompleted: {},
-		model.InstanceStatusFailed: {
-			model.InstanceStatusRunning,
-		},
-		model.InstanceStatusCancelled: {},
 	}
 
 	if transitions, exists := allowedTransitions[currentStatus]; exists {
@@ -135,20 +105,7 @@ func (sm *ProcessStateMachine) handleRunningState(instance *model.ProcessInstanc
 	)
 
 	// 清除暂停原因
-	instance.SuspendReason = ""
-
-	return nil
-}
-
-// handleSuspendedState 处理暂停状态
-func (sm *ProcessStateMachine) handleSuspendedState(instance *model.ProcessInstance, reason string) error {
-	sm.logger.Info("Handling process instance suspended state",
-		zap.Uint("instance_id", instance.ID),
-		zap.String("reason", reason),
-	)
-
-	// 设置暂停原因
-	instance.SuspendReason = reason
+	// instance.SuspendReason = ""
 
 	return nil
 }
@@ -158,38 +115,6 @@ func (sm *ProcessStateMachine) handleCompletedState(instance *model.ProcessInsta
 	sm.logger.Info("Handling process instance completed state",
 		zap.Uint("instance_id", instance.ID),
 	)
-
-	// 设置结束时间
-	if instance.EndTime == nil {
-		now := instance.UpdatedAt
-		instance.EndTime = &now
-	}
-
-	return nil
-}
-
-// handleFailedState 处理失败状态
-func (sm *ProcessStateMachine) handleFailedState(instance *model.ProcessInstance, reason string) error {
-	sm.logger.Info("Handling process instance failed state",
-		zap.Uint("instance_id", instance.ID),
-		zap.String("reason", reason),
-	)
-
-	// 设置失败原因
-	instance.SuspendReason = reason
-
-	return nil
-}
-
-// handleCancelledState 处理已取消状态
-func (sm *ProcessStateMachine) handleCancelledState(instance *model.ProcessInstance, reason string) error {
-	sm.logger.Info("Handling process instance cancelled state",
-		zap.Uint("instance_id", instance.ID),
-		zap.String("reason", reason),
-	)
-
-	// 设置取消原因
-	instance.SuspendReason = reason
 
 	// 设置结束时间
 	if instance.EndTime == nil {

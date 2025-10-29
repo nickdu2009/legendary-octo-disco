@@ -21,11 +21,9 @@ type ProcessEngine struct {
 	processRepo     *repository.ProcessRepository
 	userRepo        *repository.UserRepository
 	logger          *logger.Logger
-	taskAssigner    TaskAssignmentStrategy
 	variableEngine  *VariableEngine
 	serviceExecutor *ServiceExecutor
 	stateMachine    *ProcessStateMachine
-	eventSystem     *EventSystem
 	taskLifecycle   *TaskLifecycleManager
 }
 
@@ -38,7 +36,6 @@ func NewProcessEngine(
 	db *database.Database,
 	logger *logger.Logger,
 ) *ProcessEngine {
-	eventSystem := NewEventSystem(logger)
 	stateMachine := NewProcessStateMachine(nil, logger)
 	taskLifecycle := NewTaskLifecycleManager(taskRepo, nil, logger)
 
@@ -48,17 +45,11 @@ func NewProcessEngine(
 		processRepo:     processRepo,
 		userRepo:        userRepo,
 		logger:          logger,
-		taskAssigner:    &DirectAssignmentStrategy{}, // 默认使用直接分配策略
 		variableEngine:  NewVariableEngine(logger),
 		serviceExecutor: NewServiceExecutor(db, logger),
 		stateMachine:    stateMachine,
-		eventSystem:     eventSystem,
 		taskLifecycle:   taskLifecycle,
 	}
-
-	// 设置相互引用
-	stateMachine.engine = engine
-	taskLifecycle.engine = engine
 
 	return engine
 }
@@ -67,12 +58,7 @@ func NewProcessEngine(
 type StartProcessRequest struct {
 	DefinitionID uint                   `json:"definition_id" validate:"required"`
 	BusinessKey  string                 `json:"business_key" validate:"required,min=1,max=255"`
-	Title        string                 `json:"title" validate:"max=255"`
-	Description  string                 `json:"description"`
 	Variables    map[string]interface{} `json:"variables"`
-	Priority     int                    `json:"priority" validate:"min=1,max=100"`
-	DueDate      *time.Time             `json:"due_date"`
-	Tags         []string               `json:"tags"`
 }
 
 // StartProcess 启动流程实例
@@ -107,40 +93,15 @@ func (e *ProcessEngine) StartProcess(req *StartProcessRequest, starterID uint) (
 		return nil, fmt.Errorf("序列化变量失败: %v", err)
 	}
 
-	// 序列化标签
-	tagsJSON, err := json.Marshal(req.Tags)
-	if err != nil {
-		tagsJSON = []byte("[]")
-	}
-
-	// 序列化元数据
-	metadataJSON := []byte("{}")
-	if len(req.Tags) > 0 {
-		metadata := map[string]interface{}{
-			"tags": req.Tags,
-		}
-		if metadataBytes, err := json.Marshal(metadata); err == nil {
-			metadataJSON = metadataBytes
-		}
-	}
-
 	// 创建流程实例
 	instance := &model.ProcessInstance{
-		DefinitionID:     req.DefinitionID,
-		BusinessKey:      req.BusinessKey,
-		Title:            req.Title,
-		Description:      req.Description,
-		CurrentNode:      startNode.ID,
-		Status:           model.InstanceStatusRunning,
-		Variables:        string(variablesJSON),
-		StartTime:        time.Now(),
-		StarterID:        starterID,
-		Priority:         req.Priority,
-		DueDate:          req.DueDate,
-		Tags:             string(tagsJSON),
-		Metadata:         string(metadataJSON),
-		ExecutionPath:    fmt.Sprintf(`[{"node":"%s","timestamp":"%s"}]`, startNode.ID, time.Now().Format(time.RFC3339)),
-		ExpectedDuration: e.estimateProcessDuration(definitionData),
+		DefinitionID: req.DefinitionID,
+		BusinessKey:  req.BusinessKey,
+		CurrentNode:  startNode.ID,
+		Status:       model.InstanceStatusRunning,
+		Variables:    string(variablesJSON),
+		StartTime:    time.Now(),
+		StarterID:    starterID,
 	}
 
 	// 保存流程实例
@@ -157,11 +118,10 @@ func (e *ProcessEngine) StartProcess(req *StartProcessRequest, starterID uint) (
 	instance.Definition = *definition
 
 	// 发布流程启动事件
-	event := e.eventSystem.CreateEvent(EventProcessStarted, "process_engine", map[string]interface{}{
-		"instance_id": instance.ID,
-		"starter_id":  starterID,
-	})
-	e.eventSystem.Publish(event)
+	e.logger.Info("Process started",
+		zap.Uint("instance_id", instance.ID),
+		zap.Uint("starter_id", starterID),
+	)
 
 	// 推进到第一个节点
 	if err := e.moveToNextNode(instance, startNode.ID); err != nil {
@@ -228,13 +188,6 @@ func (e *ProcessEngine) CompleteTask(taskID uint, userID uint, formData map[stri
 		zap.Uint("user_id", userID),
 	)
 
-	// 发布任务完成事件
-	event := e.eventSystem.CreateEvent(EventTaskCompleted, "process_engine", map[string]interface{}{
-		"task_id": task.ID,
-		"user_id": userID,
-	})
-	e.eventSystem.Publish(event)
-
 	// 获取流程实例并推进流程
 	instance, err := e.instanceRepo.GetByID(task.InstanceID)
 	if err != nil {
@@ -275,13 +228,6 @@ func (e *ProcessEngine) SuspendInstance(instanceID uint, reason string) error {
 		zap.String("reason", reason),
 	)
 
-	// 发布流程暂停事件
-	event := e.eventSystem.CreateEvent(EventProcessSuspended, "process_engine", map[string]interface{}{
-		"instance_id": instance.ID,
-		"reason":      reason,
-	})
-	e.eventSystem.Publish(event)
-
 	return nil
 }
 
@@ -308,12 +254,6 @@ func (e *ProcessEngine) ResumeInstance(instanceID uint) error {
 	e.logger.Info("Process instance resumed",
 		zap.Uint("instance_id", instanceID),
 	)
-
-	// 发布流程恢复事件
-	event := e.eventSystem.CreateEvent(EventProcessResumed, "process_engine", map[string]interface{}{
-		"instance_id": instance.ID,
-	})
-	e.eventSystem.Publish(event)
 
 	return nil
 }
@@ -347,13 +287,6 @@ func (e *ProcessEngine) CancelInstance(instanceID uint, reason string) error {
 		zap.Uint("instance_id", instanceID),
 		zap.String("reason", reason),
 	)
-
-	// 发布流程取消事件
-	event := e.eventSystem.CreateEvent(EventProcessCancelled, "process_engine", map[string]interface{}{
-		"instance_id": instance.ID,
-		"reason":      reason,
-	})
-	e.eventSystem.Publish(event)
 
 	return nil
 }
@@ -491,18 +424,10 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 	}
 
 	// 发布任务创建事件
-	event := e.eventSystem.CreateEvent(EventTaskCreated, "process_engine", map[string]interface{}{
-		"task_id":     task.ID,
-		"instance_id": instance.ID,
-		"node_id":     node.ID,
-	})
-	e.eventSystem.Publish(event)
-
-	e.logger.Info("User task created successfully",
+	e.logger.Info("User task created",
 		zap.Uint("instance_id", instance.ID),
 		zap.Uint("task_id", task.ID),
 		zap.String("node_id", node.ID),
-		zap.String("task_status", task.Status),
 	)
 
 	return nil
@@ -512,14 +437,12 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 func (e *ProcessEngine) handleServiceTask(instance *model.ProcessInstance, node *model.ProcessNode) error {
 	// 创建服务任务
 	task := &model.TaskInstance{
-		InstanceID:        instance.ID,
-		NodeID:            node.ID,
-		Name:              node.Name,
-		TaskType:          model.TaskTypeService,
-		Status:            model.TaskStatusCreated,
-		Priority:          instance.Priority,
-		EstimatedDuration: 60, // 默认1分钟
-		AutoAssign:        true,
+		InstanceID: instance.ID,
+		NodeID:     node.ID,
+		Name:       node.Name,
+		TaskType:   model.TaskTypeService,
+		Status:     model.TaskStatusCreated,
+		Priority:   50, // 默认优先级
 	}
 
 	// 保存任务
@@ -530,27 +453,7 @@ func (e *ProcessEngine) handleServiceTask(instance *model.ProcessInstance, node 
 	// 立即执行服务任务
 	if err := e.executeServiceTask(task, node); err != nil {
 		e.logger.Error("Service task execution failed", zap.Error(err))
-
-		// 标记任务失败
-		task.Status = model.TaskStatusFailed
-		task.ErrorMessage = err.Error()
-		task.RetryCount++
-
-		if err := e.taskRepo.Update(task); err != nil {
-			return fmt.Errorf("更新任务状态失败: %v", err)
-		}
-
-		// 如果还有重试次数，稍后重试
-		if task.RetryCount < task.MaxRetries {
-			// TODO: 实现重试机制
-			e.logger.Info("Service task will be retried",
-				zap.Uint("task_id", task.ID),
-				zap.Int("retry_count", task.RetryCount),
-			)
-			return nil
-		}
-
-		return fmt.Errorf("服务任务执行失败: %v", err)
+		return err
 	}
 
 	// 任务执行成功，推进流程
@@ -602,7 +505,6 @@ func (e *ProcessEngine) handleEndNode(instance *model.ProcessInstance, node *mod
 
 	instance.EndTime = &now
 	instance.CurrentNode = node.ID
-	instance.ActualDuration = int(now.Sub(instance.StartTime).Seconds())
 
 	// 更新执行路径
 	e.updateExecutionPath(instance, node.ID)
@@ -614,15 +516,7 @@ func (e *ProcessEngine) handleEndNode(instance *model.ProcessInstance, node *mod
 	e.logger.Info("Process instance completed",
 		zap.Uint("instance_id", instance.ID),
 		zap.String("end_node", node.ID),
-		zap.Int("duration", instance.ActualDuration),
 	)
-
-	// 发布流程完成事件
-	event := e.eventSystem.CreateEvent(EventProcessCompleted, "process_engine", map[string]interface{}{
-		"instance_id": instance.ID,
-		"duration":    instance.ActualDuration,
-	})
-	e.eventSystem.Publish(event)
 
 	return nil
 }
@@ -709,22 +603,8 @@ func (e *ProcessEngine) executeServiceTask(task *model.TaskInstance, node *model
 		zap.String("task_type", task.TaskType),
 	)
 
-	// 根据任务类型执行相应的服务
-	switch task.TaskType {
-	case "httpService":
-		return e.serviceExecutor.ExecuteHTTPService(task)
-	case "databaseService":
-		return e.serviceExecutor.ExecuteDatabaseService(task)
-	case "emailService":
-		return e.serviceExecutor.ExecuteEmailService(task)
-	case "scriptService":
-		return e.serviceExecutor.ExecuteScriptService(task)
-	default:
-		// 默认的简单服务任务执行
-		e.logger.Info("Executing default service task", zap.Uint("task_id", task.ID))
-		time.Sleep(100 * time.Millisecond) // 模拟执行时间
-		return nil
-	}
+	// 使用简化后的服务执行器
+	return e.serviceExecutor.ExecuteService(task)
 }
 
 // completeServiceTask 完成服务任务
@@ -778,11 +658,11 @@ func (e *ProcessEngine) checkAndAdvanceProcess(instance *model.ProcessInstance, 
 		return nil
 	}
 
-	// 推进到下一个节点
+	// 推进到所有满足条件的节点
 	for _, flow := range outgoingFlows {
 		if err := e.moveToNextNode(instance, flow.To); err != nil {
 			e.logger.Error("Failed to move to next node",
-				zap.String("next_node", flow.To),
+				zap.String("node_id", flow.To),
 				zap.Error(err),
 			)
 		}
@@ -909,11 +789,11 @@ func (e *ProcessEngine) cancelInstanceTasks(instanceID uint) error {
 			}
 
 			// 发布任务跳过事件
-			event := e.eventSystem.CreateEvent(EventTaskSkipped, "process_engine", map[string]interface{}{
-				"task_id": task.ID,
-				"reason":  "流程取消",
-			})
-			e.eventSystem.Publish(event)
+			e.logger.Info("Task skipped",
+				zap.Uint("instance_id", instanceID),
+				zap.Uint("task_id", task.ID),
+				zap.String("reason", "流程取消"),
+			)
 		}
 	}
 
@@ -976,9 +856,7 @@ func (e *ProcessEngine) SaveTaskForm(taskID uint, userID uint, formData map[stri
 
 	// 验证用户权限
 	if task.AssigneeID == nil || *task.AssigneeID != userID {
-		if task.ClaimedBy == nil || *task.ClaimedBy != userID {
-			return errors.New("用户没有权限保存此任务表单")
-		}
+		return errors.New("用户没有权限保存此任务表单")
 	}
 
 	// 序列化表单数据

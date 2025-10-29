@@ -24,6 +24,9 @@ type ProcessEngine struct {
 	taskAssigner    TaskAssignmentStrategy
 	variableEngine  *VariableEngine
 	serviceExecutor *ServiceExecutor
+	stateMachine    *ProcessStateMachine
+	eventSystem     *EventSystem
+	taskLifecycle   *TaskLifecycleManager
 }
 
 // NewProcessEngine 创建新的流程执行引擎
@@ -35,7 +38,11 @@ func NewProcessEngine(
 	db *database.Database,
 	logger *logger.Logger,
 ) *ProcessEngine {
-	return &ProcessEngine{
+	eventSystem := NewEventSystem(logger)
+	stateMachine := NewProcessStateMachine(nil, logger)
+	taskLifecycle := NewTaskLifecycleManager(taskRepo, nil, logger)
+
+	engine := &ProcessEngine{
 		instanceRepo:    instanceRepo,
 		taskRepo:        taskRepo,
 		processRepo:     processRepo,
@@ -44,7 +51,16 @@ func NewProcessEngine(
 		taskAssigner:    &DirectAssignmentStrategy{}, // 默认使用直接分配策略
 		variableEngine:  NewVariableEngine(logger),
 		serviceExecutor: NewServiceExecutor(db, logger),
+		stateMachine:    stateMachine,
+		eventSystem:     eventSystem,
+		taskLifecycle:   taskLifecycle,
 	}
+
+	// 设置相互引用
+	stateMachine.engine = engine
+	taskLifecycle.engine = engine
+
+	return engine
 }
 
 // StartProcessRequest 启动流程请求
@@ -140,6 +156,13 @@ func (e *ProcessEngine) StartProcess(req *StartProcessRequest, starterID uint) (
 	// 设置Definition关联，供后续使用
 	instance.Definition = *definition
 
+	// 发布流程启动事件
+	event := e.eventSystem.CreateEvent(EventProcessStarted, "process_engine", map[string]interface{}{
+		"instance_id": instance.ID,
+		"starter_id":  starterID,
+	})
+	e.eventSystem.Publish(event)
+
 	// 推进到第一个节点
 	if err := e.moveToNextNode(instance, startNode.ID); err != nil {
 		e.logger.Error("Failed to move to first node",
@@ -205,6 +228,13 @@ func (e *ProcessEngine) CompleteTask(taskID uint, userID uint, formData map[stri
 		zap.Uint("user_id", userID),
 	)
 
+	// 发布任务完成事件
+	event := e.eventSystem.CreateEvent(EventTaskCompleted, "process_engine", map[string]interface{}{
+		"task_id": task.ID,
+		"user_id": userID,
+	})
+	e.eventSystem.Publish(event)
+
 	// 获取流程实例并推进流程
 	instance, err := e.instanceRepo.GetByID(task.InstanceID)
 	if err != nil {
@@ -231,8 +261,10 @@ func (e *ProcessEngine) SuspendInstance(instanceID uint, reason string) error {
 		return errors.New("只能暂停运行中的流程实例")
 	}
 
-	instance.Status = model.InstanceStatusSuspended
-	instance.SuspendReason = reason
+	// 使用状态机转换状态
+	if err := e.stateMachine.TransitionTo(instance, model.InstanceStatusSuspended, reason); err != nil {
+		return fmt.Errorf("状态转换失败: %v", err)
+	}
 
 	if err := e.instanceRepo.Update(instance); err != nil {
 		return fmt.Errorf("更新流程实例状态失败: %v", err)
@@ -242,6 +274,13 @@ func (e *ProcessEngine) SuspendInstance(instanceID uint, reason string) error {
 		zap.Uint("instance_id", instanceID),
 		zap.String("reason", reason),
 	)
+
+	// 发布流程暂停事件
+	event := e.eventSystem.CreateEvent(EventProcessSuspended, "process_engine", map[string]interface{}{
+		"instance_id": instance.ID,
+		"reason":      reason,
+	})
+	e.eventSystem.Publish(event)
 
 	return nil
 }
@@ -257,8 +296,10 @@ func (e *ProcessEngine) ResumeInstance(instanceID uint) error {
 		return errors.New("只能恢复暂停的流程实例")
 	}
 
-	instance.Status = model.InstanceStatusRunning
-	instance.SuspendReason = ""
+	// 使用状态机转换状态
+	if err := e.stateMachine.TransitionTo(instance, model.InstanceStatusRunning, ""); err != nil {
+		return fmt.Errorf("状态转换失败: %v", err)
+	}
 
 	if err := e.instanceRepo.Update(instance); err != nil {
 		return fmt.Errorf("更新流程实例状态失败: %v", err)
@@ -267,6 +308,12 @@ func (e *ProcessEngine) ResumeInstance(instanceID uint) error {
 	e.logger.Info("Process instance resumed",
 		zap.Uint("instance_id", instanceID),
 	)
+
+	// 发布流程恢复事件
+	event := e.eventSystem.CreateEvent(EventProcessResumed, "process_engine", map[string]interface{}{
+		"instance_id": instance.ID,
+	})
+	e.eventSystem.Publish(event)
 
 	return nil
 }
@@ -282,10 +329,10 @@ func (e *ProcessEngine) CancelInstance(instanceID uint, reason string) error {
 		return errors.New("流程实例已完成或已取消，无法取消")
 	}
 
-	now := time.Now()
-	instance.Status = model.InstanceStatusCancelled
-	instance.EndTime = &now
-	instance.SuspendReason = reason
+	// 使用状态机转换状态
+	if err := e.stateMachine.TransitionTo(instance, model.InstanceStatusCancelled, reason); err != nil {
+		return fmt.Errorf("状态转换失败: %v", err)
+	}
 
 	if err := e.instanceRepo.Update(instance); err != nil {
 		return fmt.Errorf("更新流程实例状态失败: %v", err)
@@ -300,6 +347,13 @@ func (e *ProcessEngine) CancelInstance(instanceID uint, reason string) error {
 		zap.Uint("instance_id", instanceID),
 		zap.String("reason", reason),
 	)
+
+	// 发布流程取消事件
+	event := e.eventSystem.CreateEvent(EventProcessCancelled, "process_engine", map[string]interface{}{
+		"instance_id": instance.ID,
+		"reason":      reason,
+	})
+	e.eventSystem.Publish(event)
 
 	return nil
 }
@@ -417,72 +471,11 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 		zap.String("task_name", node.Name),
 	)
 
-	// 创建用户任务，设置所有必填字段和默认值
-	task := &model.TaskInstance{
-		InstanceID:        instance.ID,
-		NodeID:            node.ID,
-		Name:              node.Name,
-		TaskType:          model.TaskTypeUser,
-		Status:            model.TaskStatusCreated,
-		Priority:          instance.Priority,
-		EstimatedDuration: 3600, // 默认1小时
-
-		// 设置默认值避免数据库约束错误
-		RetryCount:       0,
-		MaxRetries:       3,
-		ActualDuration:   0,
-		AutoAssign:       false,
-		RequiresApproval: false,
-		NotificationSent: false,
-		EscalationLevel:  0,
-
-		// 设置JSON字段的默认值
-		ExecutionData:  "{}",
-		FormDefinition: "{}", // 修复：不能为空字符串，必须是有效JSON
-		OutputData:     "{}",
-		Comment:        "",
-		FormData:       "{}",
-		ErrorMessage:   "",
-	}
-
-	// 简化分配逻辑，先创建任务再处理分配
-	e.logger.Info("Creating user task",
-		zap.String("task_name", task.Name),
-		zap.String("node_id", task.NodeID),
-	)
-
-	// 设置到期时间
-	if instance.DueDate != nil {
-		task.DueDate = instance.DueDate
-	}
-
-	// 保存任务前先检查必填字段
-	e.logger.Info("About to create task",
-		zap.Uint("instance_id", task.InstanceID),
-		zap.String("node_id", task.NodeID),
-		zap.String("name", task.Name),
-		zap.String("task_type", task.TaskType),
-		zap.String("status", task.Status),
-	)
-
-	// 保存任务
-	if err := e.taskRepo.Create(task); err != nil {
-		e.logger.Error("Failed to create user task",
-			zap.Uint("instance_id", instance.ID),
-			zap.String("node_id", node.ID),
-			zap.String("task_name", task.Name),
-			zap.String("task_type", task.TaskType),
-			zap.String("task_status", task.Status),
-			zap.Error(err),
-		)
+	// 使用任务生命周期管理器创建任务
+	task, err := e.taskLifecycle.CreateTask(instance, node.ID)
+	if err != nil {
 		return fmt.Errorf("创建用户任务失败: %v", err)
 	}
-
-	e.logger.Info("Task created successfully in database",
-		zap.Uint("task_id", task.ID),
-		zap.Uint("instance_id", task.InstanceID),
-		zap.String("node_id", task.NodeID),
-	)
 
 	// 更新流程实例统计
 	instance.TaskCount++
@@ -496,6 +489,14 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 		)
 		return fmt.Errorf("更新流程实例失败: %v", err)
 	}
+
+	// 发布任务创建事件
+	event := e.eventSystem.CreateEvent(EventTaskCreated, "process_engine", map[string]interface{}{
+		"task_id":     task.ID,
+		"instance_id": instance.ID,
+		"node_id":     node.ID,
+	})
+	e.eventSystem.Publish(event)
 
 	e.logger.Info("User task created successfully",
 		zap.Uint("instance_id", instance.ID),
@@ -593,7 +594,12 @@ func (e *ProcessEngine) handleGateway(instance *model.ProcessInstance, node *mod
 // handleEndNode 处理结束节点
 func (e *ProcessEngine) handleEndNode(instance *model.ProcessInstance, node *model.ProcessNode) error {
 	now := time.Now()
-	instance.Status = model.InstanceStatusCompleted
+
+	// 使用状态机转换状态
+	if err := e.stateMachine.TransitionTo(instance, model.InstanceStatusCompleted, ""); err != nil {
+		return fmt.Errorf("状态转换失败: %v", err)
+	}
+
 	instance.EndTime = &now
 	instance.CurrentNode = node.ID
 	instance.ActualDuration = int(now.Sub(instance.StartTime).Seconds())
@@ -610,6 +616,13 @@ func (e *ProcessEngine) handleEndNode(instance *model.ProcessInstance, node *mod
 		zap.String("end_node", node.ID),
 		zap.Int("duration", instance.ActualDuration),
 	)
+
+	// 发布流程完成事件
+	event := e.eventSystem.CreateEvent(EventProcessCompleted, "process_engine", map[string]interface{}{
+		"instance_id": instance.ID,
+		"duration":    instance.ActualDuration,
+	})
+	e.eventSystem.Publish(event)
 
 	return nil
 }
@@ -894,6 +907,13 @@ func (e *ProcessEngine) cancelInstanceTasks(instanceID uint) error {
 			if err := e.taskRepo.Update(&task); err != nil {
 				e.logger.Error("Failed to cancel task", zap.Uint("task_id", task.ID), zap.Error(err))
 			}
+
+			// 发布任务跳过事件
+			event := e.eventSystem.CreateEvent(EventTaskSkipped, "process_engine", map[string]interface{}{
+				"task_id": task.ID,
+				"reason":  "流程取消",
+			})
+			e.eventSystem.Publish(event)
 		}
 	}
 

@@ -1,0 +1,149 @@
+{
+  "processes": [
+    {
+      "name": "请假流程",
+      "description": "员工请假审批流程",
+      "definition": {
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "开始",
+            "position": { "x": 100, "y": 100 }
+          },
+          {
+            "id": "apply",
+            "type": "userTask",
+            "name": "提交请假申请",
+            "position": { "x": 200, "y": 100 },
+            "assignee": "applicant"
+          },
+          {
+            "id": "approve",
+            "type": "userTask",
+            "name": "经理审批",
+            "position": { "x": 300, "y": 100 },
+            "assignee": "manager"
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "结束",
+            "position": { "x": 400, "y": 100 }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e1",
+            "source": "start",
+            "target": "apply"
+          },
+          {
+            "id": "e2",
+            "source": "apply",
+            "target": "approve"
+          },
+          {
+            "id": "e3",
+            "source": "approve",
+            "target": "end"
+          }
+        ]
+      }
+    },
+    {
+      "name": "报销流程",
+      "description": "费用报销审批流程",
+      "definition": {
+        "nodes": [
+          {
+            "id": "start",
+            "type": "start",
+            "name": "开始",
+            "position": { "x": 100, "y": 100 }
+          },
+          {
+            "id": "submit",
+            "type": "userTask",
+            "name": "提交报销申请",
+            "position": { "x": 200, "y": 100 },
+            "assignee": "applicant"
+          },
+          {
+            "id": "finance",
+            "type": "userTask",
+            "name": "财务审核",
+            "position": { "x": 300, "y": 100 },
+            "assignee": "finance"
+          },
+          {
+            "id": "end",
+            "type": "end",
+            "name": "结束",
+            "position": { "x": 400, "y": 100 }
+          }
+        ],
+        "edges": [
+          {
+            "id": "e1",
+            "source": "start",
+            "target": "submit"
+          },
+          {
+            "id": "e2",
+            "source": "submit",
+            "target": "finance"
+          },
+          {
+            "id": "e3",
+            "source": "finance",
+            "target": "end"
+          }
+        ]
+      }
+    }
+  ],
+  "test_instances": [
+    {
+      "process_name": "请假流程",
+      "business_key": "LEAVE-001",
+      "variables": {
+        "applicant": "张三",
+        "leave_type": "年假",
+        "start_date": "2025-11-01",
+        "end_date": "2025-11-03",
+        "reason": "家庭事务"
+      }
+    },
+    {
+      "process_name": "报销流程",
+      "business_key": "EXPENSE-001",
+      "variables": {
+        "applicant": "李四",
+        "amount": 500,
+        "expense_type": "交通费",
+        "description": "出差交通费用"
+      }
+    }
+  ],
+  "invalid_data": {
+    "users": [
+      {
+        "username": "",
+        "password": "test123",
+        "email": "invalid"
+      },
+      {
+        "username": "a",
+        "password": "123",
+        "email": "test@example.com"
+      }
+    ],
+    "processes": [
+      {
+        "name": "",
+        "description": "无效流程"
+      }
+    ]
+  }
+}

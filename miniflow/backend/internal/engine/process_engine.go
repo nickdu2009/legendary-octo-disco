@@ -37,7 +37,7 @@ func NewProcessEngine(
 	logger *logger.Logger,
 ) *ProcessEngine {
 	stateMachine := NewProcessStateMachine(nil, logger)
-	taskLifecycle := NewTaskLifecycleManager(taskRepo, nil, logger)
+	taskLifecycle := NewTaskLifecycleManager(taskRepo, logger)
 
 	engine := &ProcessEngine{
 		instanceRepo:    instanceRepo,
@@ -161,26 +161,20 @@ func (e *ProcessEngine) CompleteTask(taskID uint, userID uint, formData map[stri
 	}
 
 	// 序列化表单数据
-	formDataJSON, err := json.Marshal(formData)
-	if err != nil {
-		return fmt.Errorf("序列化表单数据失败: %v", err)
+	if formData != nil {
+		if formDataJSON, err := json.Marshal(formData); err == nil {
+			task.Comment = string(formDataJSON)
+		}
 	}
 
 	// 更新任务状态
 	now := time.Now()
 	task.Status = model.TaskStatusCompleted
 	task.CompleteTime = &now
-	task.CompletedBy = &userID
 	task.Comment = comment
-	task.FormData = string(formDataJSON)
-
-	// 计算实际执行时间
-	if task.StartTime != nil {
-		task.ActualDuration = int(now.Sub(*task.StartTime).Seconds())
-	}
 
 	if err := e.taskRepo.Update(task); err != nil {
-		return fmt.Errorf("更新任务状态失败: %v", err)
+		return fmt.Errorf("更新服务任务状态失败: %v", err)
 	}
 
 	e.logger.Info("Task completed successfully",
@@ -411,8 +405,6 @@ func (e *ProcessEngine) handleUserTask(instance *model.ProcessInstance, node *mo
 	}
 
 	// 更新流程实例统计
-	instance.TaskCount++
-	instance.ActiveTasks++
 	// 注意：CurrentNode已经在handleStartNode中更新了，这里不需要重复更新
 
 	if err := e.instanceRepo.Update(instance); err != nil {
@@ -440,7 +432,6 @@ func (e *ProcessEngine) handleServiceTask(instance *model.ProcessInstance, node 
 		InstanceID: instance.ID,
 		NodeID:     node.ID,
 		Name:       node.Name,
-		TaskType:   model.TaskTypeService,
 		Status:     model.TaskStatusCreated,
 		Priority:   50, // 默认优先级
 	}
@@ -478,9 +469,6 @@ func (e *ProcessEngine) handleGateway(instance *model.ProcessInstance, node *mod
 		return errors.New("网关条件评估后没有可执行的路径")
 	}
 
-	// 更新执行路径
-	e.updateExecutionPath(instance, node.ID)
-
 	// 推进到所有满足条件的节点
 	for _, nodeID := range nextNodeIDs {
 		if err := e.moveToNextNode(instance, nodeID); err != nil {
@@ -507,7 +495,7 @@ func (e *ProcessEngine) handleEndNode(instance *model.ProcessInstance, node *mod
 	instance.CurrentNode = node.ID
 
 	// 更新执行路径
-	e.updateExecutionPath(instance, node.ID)
+	// e.updateExecutionPath(instance, node.ID) // 移除此行
 
 	if err := e.instanceRepo.Update(instance); err != nil {
 		return fmt.Errorf("更新流程实例状态失败: %v", err)
@@ -559,27 +547,6 @@ func (e *ProcessEngine) getInstanceVariables(instanceID uint) (map[string]interf
 	return variables, nil
 }
 
-// updateExecutionPath 更新执行路径
-func (e *ProcessEngine) updateExecutionPath(instance *model.ProcessInstance, nodeID string) {
-	pathEntry := fmt.Sprintf(`{"node":"%s","timestamp":"%s"}`, nodeID, time.Now().Format(time.RFC3339))
-
-	// 解析现有路径
-	var path []interface{}
-	if err := json.Unmarshal([]byte(instance.ExecutionPath), &path); err != nil {
-		path = []interface{}{}
-	}
-
-	// 添加新路径
-	var newPathEntry interface{}
-	json.Unmarshal([]byte(pathEntry), &newPathEntry)
-	path = append(path, newPathEntry)
-
-	// 序列化回去
-	if pathJSON, err := json.Marshal(path); err == nil {
-		instance.ExecutionPath = string(pathJSON)
-	}
-}
-
 // estimateProcessDuration 估算流程执行时间
 func (e *ProcessEngine) estimateProcessDuration(definition *model.ProcessDefinitionData) int {
 	// 简单估算：用户任务1小时，服务任务1分钟
@@ -600,7 +567,6 @@ func (e *ProcessEngine) executeServiceTask(task *model.TaskInstance, node *model
 	e.logger.Info("Executing service task",
 		zap.Uint("task_id", task.ID),
 		zap.String("node_id", node.ID),
-		zap.String("task_type", task.TaskType),
 	)
 
 	// 使用简化后的服务执行器
@@ -612,7 +578,6 @@ func (e *ProcessEngine) completeServiceTask(instance *model.ProcessInstance, tas
 	now := time.Now()
 	task.Status = model.TaskStatusCompleted
 	task.CompleteTime = &now
-	task.ActualDuration = 1 // 服务任务通常很快完成
 
 	if err := e.taskRepo.Update(task); err != nil {
 		return fmt.Errorf("更新服务任务状态失败: %v", err)
@@ -763,12 +728,11 @@ func (e *ProcessEngine) GetInstanceHistory(instanceID uint) (interface{}, error)
 
 	// 构建历史数据
 	history := map[string]interface{}{
-		"instance":       instance,
-		"tasks":          tasks,
-		"execution_path": instance.ExecutionPath,
-		"created_at":     instance.CreatedAt,
-		"start_time":     instance.StartTime,
-		"end_time":       instance.EndTime,
+		"instance":   instance,
+		"tasks":      tasks,
+		"created_at": instance.CreatedAt,
+		"start_time": instance.StartTime,
+		"end_time":   instance.EndTime,
 	}
 
 	return history, nil
@@ -832,18 +796,10 @@ func (e *ProcessEngine) GetTaskForm(taskID uint) (interface{}, error) {
 		return nil, err
 	}
 
-	// 解析表单定义
-	var formDefinition interface{}
-	if task.FormDefinition != "" {
-		if err := json.Unmarshal([]byte(task.FormDefinition), &formDefinition); err != nil {
-			return nil, err
-		}
-	}
-
+	// 简化处理，直接返回任务信息
 	return map[string]interface{}{
-		"task":            task,
-		"form_definition": formDefinition,
-		"form_data":       task.FormData,
+		"task":      task,
+		"form_data": task.Comment,
 	}, nil
 }
 
@@ -866,7 +822,7 @@ func (e *ProcessEngine) SaveTaskForm(taskID uint, userID uint, formData map[stri
 	}
 
 	// 更新任务表单数据
-	task.FormData = string(formDataJSON)
+	task.Comment = string(formDataJSON)
 	return e.taskRepo.Update(task)
 }
 

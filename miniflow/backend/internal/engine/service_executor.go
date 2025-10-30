@@ -34,7 +34,6 @@ func (e *ServiceExecutor) ExecuteService(task *model.TaskInstance) error {
 
 	e.logger.Info("Service task completed successfully",
 		zap.Uint("task_id", task.ID),
-		zap.String("task_type", task.TaskType),
 	)
 
 	return nil

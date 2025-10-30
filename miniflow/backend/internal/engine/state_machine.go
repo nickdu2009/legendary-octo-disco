@@ -28,7 +28,6 @@ func (sm *ProcessStateMachine) TransitionTo(instance *model.ProcessInstance, new
 		return fmt.Errorf("无效的状态转换: %s -> %s", instance.Status, newStatus)
 	}
 
-	oldStatus := instance.Status
 	instance.Status = newStatus
 
 	// 根据新状态执行特定处理
@@ -40,16 +39,9 @@ func (sm *ProcessStateMachine) TransitionTo(instance *model.ProcessInstance, new
 	}
 
 	// 更新实例状态
-	if err := sm.engine.instanceRepo.Update(instance); err != nil {
-		return fmt.Errorf("更新流程实例状态失败: %v", err)
-	}
-
-	// 记录状态转换日志
+	// 注意：状态机不直接更新数据库，由调用方处理
 	sm.logger.Info("Process instance status transition",
 		zap.Uint("instance_id", instance.ID),
-		zap.String("old_status", oldStatus),
-		zap.String("new_status", newStatus),
-		zap.String("reason", reason),
 	)
 
 	return nil

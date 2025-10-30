@@ -74,12 +74,7 @@ func (h *ProcessExecutionHandler) StartProcess(c echo.Context) error {
 	startReq := &engine.StartProcessRequest{
 		DefinitionID: uint(processID),
 		BusinessKey:  req.BusinessKey,
-		Title:        req.Title,
-		Description:  req.Description,
 		Variables:    req.Variables,
-		Priority:     req.Priority,
-		DueDate:      req.DueDate,
-		Tags:         req.Tags,
 	}
 
 	// 启动流程实例

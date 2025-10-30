@@ -114,7 +114,7 @@ func (m *TaskLifecycleManager) CompleteTask(taskID uint, userID uint, formData m
 	// 序列化表单数据
 	if formData != nil {
 		if formDataJSON, err := json.Marshal(formData); err == nil {
-			task.FormData = string(formDataJSON)
+			task.Comment = string(formDataJSON)
 		}
 	}
 

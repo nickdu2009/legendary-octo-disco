@@ -432,8 +432,8 @@ func (h *TaskManagementHandler) canUserAccessTask(userID uint, task *model.TaskI
 		return true
 	}
 
-	// 用户可以访问自己认领的任务
-	if task.ClaimedBy != nil && *task.ClaimedBy == userID {
+	// 用户可以访问自己认领的任务（使用AssigneeID代替ClaimedBy）
+	if task.AssigneeID != nil && *task.AssigneeID == userID {
 		return true
 	}
 
@@ -453,4 +453,3 @@ func (h *TaskManagementHandler) isAdmin(c echo.Context) bool {
 	// 实际实现中需要从数据库查询用户角色
 	return true
 }
-

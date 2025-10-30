@@ -1,0 +1,36 @@
+{
+  "api": {
+    "base_url": "http://localhost:8080",
+    "version": "v1",
+    "timeout": 30
+  },
+  "test_users": {
+    "admin": {
+      "username": "admin",
+      "password": "admin123",
+      "email": "admin@example.com"
+    },
+    "user": {
+      "username": "testuser",
+      "password": "testpass123",
+      "email": "user@example.com"
+    }
+  },
+  "database": {
+    "host": "localhost",
+    "port": 3306,
+    "username": "miniflow",
+    "password": "miniflow123",
+    "database": "miniflow"
+  },
+  "performance": {
+    "response_time_threshold": 1000,
+    "concurrent_users": 10,
+    "load_test_duration": 60
+  },
+  "reporting": {
+    "output_dir": "reports",
+    "include_screenshots": true,
+    "include_logs": true
+  }
+}
